@@ -431,15 +431,16 @@ private function card_unactive($id_cards)
 		}
 	}
 
-	/**
+/**
  * Поиск по категориям доступа
  * Показывает список категорий и сотрудников, имеющих выбранные категории
  */
 public function action_access_search()
 {
     $_SESSION['menu_active'] = 'people';
+	//$this->template->full_width = true;
     
-    // Получаем все категории доступа
+    // Получаем все категории доступа с количеством сотрудников
     $access_names = Model::Factory('People')->getAccessNames();
     
     // Получаем выбранные категории из POST
@@ -459,4 +460,80 @@ public function action_access_search()
     
     $this->template->content = $content;
 }
+
+
+/**
+ * Экспорт результатов поиска по категориям доступа в CSV
+ */
+public function action_access_export()
+{
+    // Получаем ID выбранных категорий из POST
+    $access_ids = Arr::get($_POST, 'access_names', array());
+    
+    if (empty($access_ids)) {
+        Kohana::$log->add(Log::WARNING, 'Попытка экспорта без выбранных категорий доступа');
+        $this->redirect('people/access_search');
+        return;
+    }
+    
+    // Получаем данные для экспорта
+    $people_list = Model::Factory('People')->getPeopleByAccess($access_ids);
+    
+    if (empty($people_list)) {
+        Kohana::$log->add(Log::INFO, 'Экспорт: нет данных для выбранных категорий');
+        $this->redirect('people/access_search');
+        return;
+    }
+    
+    // Формируем CSV
+    $filename = 'access_export_' . date('Y-m-d_H-i-s') . '.csv';
+    $delimiter = ';'; // Для Excel лучше использовать ;
+    
+    // Заголовки CSV
+    $headers = array(
+        'ID',
+        'Фамилия',
+        'Имя',
+        'Отчество',
+        'Организация',
+        'Категории доступа',
+        'Кол-во категорий',
+        'Примечание'
+    );
+    
+    // Устанавливаем заголовки для скачивания
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+    
+    // Открываем поток вывода
+    $output = fopen('php://output', 'w');
+    
+    // Добавляем BOM для корректного отображения UTF-8 в Excel
+    fwrite($output, "\xEF\xBB\xBF");
+    
+    // Записываем заголовки
+    fputcsv($output, $headers, $delimiter);
+    
+    // Записываем данные
+    foreach ($people_list as $person) {
+        $row = array(
+            $person['ID_PEP'],
+            $person['SURNAME'],
+            $person['NAME'],
+            $person['PATRONYMIC'],
+            $person['ORG_NAME'],
+            $person['ACCESS_NAMES'],
+            $person['ACCESS_COUNT'],
+            $person['NOTE']
+        );
+        fputcsv($output, $row, $delimiter);
+    }
+    
+    fclose($output);
+    exit;
+}
+
+
 }

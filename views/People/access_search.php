@@ -34,7 +34,7 @@
                             
                             <!-- Список категорий с чекбоксами -->
                             <div class="access-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 10px; background: #f9f9f9;">
-                                <div class="row">
+                                
                                     <?php if (!empty($access_names)): ?>
                                         <?php foreach ($access_names as $access): ?>
                                             <div class="col-sm-4 access-item" data-name="<?php echo strtolower($access['NAME']); ?>">
@@ -46,11 +46,8 @@
                                                                <?php echo in_array($access['ID_ACCESSNAME'], $selected_access) ? 'checked' : ''; ?>
                                                                class="access-checkbox">
                                                         <?php echo htmlspecialchars($access['NAME']); ?>
-                                                        <?php 
-                                                        $count = Model::factory('People')->getPeopleCountByAccess($access['ID_ACCESSNAME']);
-                                                        if ($count > 0): 
-                                                        ?>
-                                                            <span class="badge"><?php echo $count; ?></span>
+                                                        <?php if (isset($access['COUNT']) && $access['COUNT'] > 0): ?>
+                                                            <span class="badge"><?php echo $access['COUNT']; ?></span>
                                                         <?php endif; ?>
                                                     </label>
                                                 </div>
@@ -61,7 +58,7 @@
                                             <p class="text-muted"><?php echo __('Категории доступа не найдены'); ?></p>
                                         </div>
                                     <?php endif; ?>
-                                </div>
+                                
                             </div>
                             
                             <!-- Кнопки управления -->
@@ -74,7 +71,7 @@
                                     <span class="glyphicon glyphicon-unchecked" aria-hidden="true"></span>
                                     <?php echo __('Снять все'); ?>
                                 </button>
-                                <button type="submit" class="btn btn-primary btn-sm pull-right">
+                                <button type="submit" class="btn btn-primary btn-sm">
                                     <span class="glyphicon glyphicon-search" aria-hidden="true"></span>
                                     <?php echo __('Найти'); ?>
                                 </button>
@@ -97,6 +94,26 @@
                     </h4>
                 </div>
                 <div class="panel-body" style="padding: 0;">
+                    
+                    <!-- Кнопка экспорта -->
+                    <div style="padding: 10px; background: #f5f5f5; border-bottom: 1px solid #ddd;">
+                        <form method="POST" action="<?php echo URL::site('people/access_export'); ?>" style="display: inline;">
+                            <?php foreach ($selected_access as $access_id): ?>
+                                <input type="hidden" name="access_names[]" value="<?php echo $access_id; ?>">
+                            <?php endforeach; ?>
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span>
+                                <?php echo __('Экспортировать в CSV'); ?>
+                                <span class="badge"><?php echo count($people_list); ?></span>
+                            </button>
+                        </form>
+                        <span class="text-muted small" style="margin-left: 10px;">
+                            <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                            <?php echo __('Будет экспортировано') . ' ' . count($people_list) . ' ' . __('записей'); ?>
+                        </span>
+                    </div>
+                    
+                    <!-- Таблица -->
                     <div class="table-responsive">
                         <table class="table table-striped table-hover table-condensed table-bordered" style="margin: 0;">
                             <thead>
@@ -135,9 +152,6 @@
                                                 $person['SURNAME'] . ' ' . $person['NAME'] . ' ' . $person['PATRONYMIC'],
                                                 array('title' => __('Перейти к карточке сотрудника'))
                                             ); ?>
-                                            <?php if (!empty($person['NOTE'])): ?>
-                                                <span class="text-muted small">(<?php echo htmlspecialchars($person['NOTE']); ?>)</span>
-                                            <?php endif; ?>
                                         </td>
                                         <td><?php echo htmlspecialchars($person['ORG_NAME']); ?></td>
                                         <td>
@@ -162,6 +176,19 @@
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Информация внизу таблицы -->
+                    <div style="padding: 10px; background: #f9f9f9; border-top: 1px solid #ddd; font-size: 12px;">
+                        <span class="text-muted">
+                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                            <?php echo __('Всего записей') . ': ' . count($people_list); ?>
+                        </span>
+                        <span class="text-muted" style="margin-left: 20px;">
+                            <span class="glyphicon glyphicon-time" aria-hidden="true"></span>
+                            <?php echo __('Дата') . ': ' . date('d.m.Y H:i:s'); ?>
+                        </span>
+                    </div>
+                    
                 </div>
             </div>
         <?php elseif (!empty($selected_access) && empty($people_list)): ?>
@@ -279,6 +306,13 @@ $(document).ready(function() {
         background-color: #777;
     }
     
+    /* Стили для кнопки экспорта */
+    .btn-success .badge {
+        background-color: #fff;
+        color: #5cb85c;
+        margin-left: 5px;
+    }
+    
     /* Анимация для кнопок */
     .btn {
         transition: all 0.2s ease;
@@ -297,6 +331,11 @@ $(document).ready(function() {
         
         .table-responsive {
             border: none;
+        }
+        
+        .btn-sm {
+            font-size: 11px;
+            padding: 4px 8px;
         }
     }
 </style>

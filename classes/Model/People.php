@@ -592,12 +592,13 @@ where e.id_card is null';
 		}
 		
 		
-		/**
- * Получить все категории доступа
+/**
+ * Получить все категории доступа с количеством сотрудников
  * @return array Список категорий
  */
 public function getAccessNames()
 {
+    // Получаем все категории
     $sql = 'SELECT ID_ACCESSNAME, NAME, TIME_STAMP 
             FROM ACCESSNAME 
             ORDER BY NAME';
@@ -606,12 +607,43 @@ public function getAccessNames()
         ->execute(Database::instance('fb'))
         ->as_array();
     
+    if (empty($query)) {
+        return array();
+    }
+    
+    // Получаем ID всех категорий
+    $access_ids = array();
+    foreach ($query as $row) {
+        $access_ids[] = (int) $row['ID_ACCESSNAME'];
+    }
+    $access_ids_list = implode(',', $access_ids);
+    
+    // Получаем количество сотрудников для каждой категории
+    $sql_count = "SELECT 
+                        ID_ACCESSNAME, 
+                        COUNT(DISTINCT ID_PEP) AS CNT
+                    FROM SS_ACCESSUSER 
+                    WHERE ID_ACCESSNAME IN ({$access_ids_list})
+                    GROUP BY ID_ACCESSNAME";
+    
+    $count_query = DB::query(Database::SELECT, $sql_count)
+        ->execute(Database::instance('fb'))
+        ->as_array();
+    
+    // Формируем массив счетчиков
+    $counts = array();
+    foreach ($count_query as $row) {
+        $counts[$row['ID_ACCESSNAME']] = (int) $row['CNT'];
+    }
+    
+    // Формируем результат
     $result = array();
     foreach ($query as $row) {
         $result[] = array(
             'ID_ACCESSNAME' => $row['ID_ACCESSNAME'],
             'NAME' => iconv('windows-1251', 'UTF-8', $row['NAME']),
-            'TIME_STAMP' => $row['TIME_STAMP']
+            'TIME_STAMP' => $row['TIME_STAMP'],
+            'COUNT' => isset($counts[$row['ID_ACCESSNAME']]) ? $counts[$row['ID_ACCESSNAME']] : 0
         );
     }
     
