@@ -431,5 +431,32 @@ private function card_unactive($id_cards)
 		}
 	}
 
-	
+	/**
+ * Поиск по категориям доступа
+ * Показывает список категорий и сотрудников, имеющих выбранные категории
+ */
+public function action_access_search()
+{
+    $_SESSION['menu_active'] = 'people';
+    
+    // Получаем все категории доступа
+    $access_names = Model::Factory('People')->getAccessNames();
+    
+    // Получаем выбранные категории из POST
+    $selected_access = Arr::get($_POST, 'access_names', array());
+    
+    $people_list = array();
+    if (!empty($selected_access)) {
+        // Ищем сотрудников с выбранными категориями
+        $people_list = Model::Factory('People')->getPeopleByAccess($selected_access);
+    }
+    
+    $content = View::Factory('people/access_search', array(
+        'access_names' => $access_names,
+        'selected_access' => $selected_access,
+        'people_list' => $people_list,
+    ));
+    
+    $this->template->content = $content;
+}
 }

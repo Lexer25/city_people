@@ -71,6 +71,7 @@ class Model_People extends Model
 	*/
 	public function card_people_unactive($id_card)// Изменение активности карты
 	{
+		echo Debug::vars('74', $id_card);exit;
 		if(count($id_card)>0) {
 		$count_in=50;
 		
@@ -589,6 +590,144 @@ where e.id_card is null';
 				return $query->get('COUNT');
 			
 		}
+		
+		
+		/**
+ * Получить все категории доступа
+ * @return array Список категорий
+ */
+public function getAccessNames()
+{
+    $sql = 'SELECT ID_ACCESSNAME, NAME, TIME_STAMP 
+            FROM ACCESSNAME 
+            ORDER BY NAME';
+    
+    $query = DB::query(Database::SELECT, $sql)
+        ->execute(Database::instance('fb'))
+        ->as_array();
+    
+    $result = array();
+    foreach ($query as $row) {
+        $result[] = array(
+            'ID_ACCESSNAME' => $row['ID_ACCESSNAME'],
+            'NAME' => iconv('windows-1251', 'UTF-8', $row['NAME']),
+            'TIME_STAMP' => $row['TIME_STAMP']
+        );
+    }
+    
+    return $result;
+}
+
+/**
+ * Найти сотрудников по выбранным категориям доступа
+ * @param array $access_ids Массив ID категорий доступа
+ * @return array Список сотрудников
+ */
+public function getPeopleByAccess($access_ids)
+{
+    if (empty($access_ids)) {
+        return array();
+    }
+    
+    // Экранируем и преобразуем массив в строку
+    $access_list = implode(',', array_map('intval', $access_ids));
+    
+    // Сначала получаем сотрудников
+    $sql = "SELECT DISTINCT 
+                p.ID_PEP,
+                p.SURNAME,
+                p.NAME,
+                p.PATRONYMIC,
+                p.NOTE,
+                o.NAME AS ORG_NAME
+            FROM PEOPLE p
+            JOIN SS_ACCESSUSER sau ON sau.ID_PEP = p.ID_PEP
+            JOIN ORGANIZATION o ON o.ID_ORG = p.ID_ORG
+            WHERE sau.ID_ACCESSNAME IN ({$access_list})
+            ORDER BY p.SURNAME, p.NAME, p.PATRONYMIC";
+    
+    $query = DB::query(Database::SELECT, $sql)
+        ->execute(Database::instance('fb'))
+        ->as_array();
+    
+    if (empty($query)) {
+        return array();
+    }
+    
+    // Получаем ID сотрудников
+    $pep_ids = array();
+    foreach ($query as $row) {
+        $pep_ids[] = (int) $row['ID_PEP'];
+    }
+    
+    // Получаем все категории для этих сотрудников
+    $pep_ids_list = implode(',', $pep_ids);
+    $sql_access = "SELECT 
+                        sau.ID_PEP,
+                        an.NAME AS ACCESS_NAME
+                    FROM SS_ACCESSUSER sau
+                    JOIN ACCESSNAME an ON an.ID_ACCESSNAME = sau.ID_ACCESSNAME
+                    WHERE sau.ID_PEP IN ({$pep_ids_list})
+                    ORDER BY sau.ID_PEP, an.NAME";
+    
+    $access_query = DB::query(Database::SELECT, $sql_access)
+        ->execute(Database::instance('fb'))
+        ->as_array();
+    
+    // Группируем категории по сотрудникам
+    $access_by_pep = array();
+    foreach ($access_query as $row) {
+        $pep_id = $row['ID_PEP'];
+        $access_name = iconv('windows-1251', 'UTF-8', $row['ACCESS_NAME']);
+        
+        if (!isset($access_by_pep[$pep_id])) {
+            $access_by_pep[$pep_id] = array();
+        }
+        $access_by_pep[$pep_id][] = $access_name;
+    }
+    
+    // Формируем результат
+    $result = array();
+    foreach ($query as $row) {
+        $pep_id = $row['ID_PEP'];
+        $access_names = isset($access_by_pep[$pep_id]) ? $access_by_pep[$pep_id] : array();
+        
+        $result[] = array(
+            'ID_PEP' => $row['ID_PEP'],
+            'SURNAME' => iconv('windows-1251', 'UTF-8', $row['SURNAME']),
+            'NAME' => iconv('windows-1251', 'UTF-8', $row['NAME']),
+            'PATRONYMIC' => iconv('windows-1251', 'UTF-8', $row['PATRONYMIC']),
+            'NOTE' => iconv('windows-1251', 'UTF-8', $row['NOTE']),
+            'ORG_NAME' => iconv('windows-1251', 'UTF-8', $row['ORG_NAME']),
+            'ACCESS_NAMES' => implode(', ', $access_names),
+            'ACCESS_COUNT' => count($access_names)
+        );
+    }
+    
+    return $result;
+}
+
+/**
+ * Получить количество сотрудников по категории доступа
+ * @param int $access_id ID категории
+ * @return int Количество сотрудников
+ */
+public function getPeopleCountByAccess($access_id)
+{
+    // Экранируем значение
+    $access_id = (int) $access_id;
+    
+    $sql = 'SELECT COUNT(DISTINCT ID_PEP) AS CNT 
+            FROM SS_ACCESSUSER 
+            WHERE ID_ACCESSNAME = ' . $access_id;
+    
+    $query = DB::query(Database::SELECT, $sql)
+        ->execute(Database::instance('fb'));
+    
+    return (int) $query->get('CNT');
+}
+
+
 	
 }
 
