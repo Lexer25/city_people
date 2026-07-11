@@ -93,9 +93,15 @@
                             
                             <!-- Радио-кнопки в одну строку -->
                             <div class="row" style="margin-top: 8px;">
+								<div class="col-xs-4" style="padding-left: 2px;">
+                                    <label style="font-weight: normal; font-size: 11px; margin: 0;">
+                                        <input type="radio" name="keyFormat" value="none" checked> 
+                                        <span class="label label-warning" style="font-size: 10px;">Нет</span>
+                                    </label>
+                                </div>
                                 <div class="col-xs-4" style="padding-right: 2px;">
                                     <label style="font-weight: normal; font-size: 11px; margin: 0;">
-                                        <input type="radio" name="keyFormat" value="hex" checked> 
+                                        <input type="radio" name="keyFormat" value="hex"> 
                                         <span class="label label-info" style="font-size: 10px;">HEX</span>
                                     </label>
                                 </div>
@@ -105,12 +111,7 @@
                                         <span class="label label-success" style="font-size: 10px;">DEC</span>
                                     </label>
                                 </div>
-                                <div class="col-xs-4" style="padding-left: 2px;">
-                                    <label style="font-weight: normal; font-size: 11px; margin: 0;">
-                                        <input type="radio" name="keyFormat" value="none"> 
-                                        <span class="label label-warning" style="font-size: 10px;">Нет</span>
-                                    </label>
-                                </div>
+                                
                             </div>
                         </form>
                     </div>
