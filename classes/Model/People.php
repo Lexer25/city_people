@@ -285,47 +285,91 @@ class Model_People extends Model
 	
 	
 	
-	
-	public function findIdPepInfo($id_pep)// подготовка данных для выбора по массиву id_pep
-	{
-		//echo Debug::vars('154', $id_pep, empty($id_pep)); exit;
-		$res=array();
-		if(!empty($id_pep))
-		{
-		
-			$sql='select distinct p.id_pep, p.name, p.surname, p.patronymic, p.note,  o.name as org_name, c.id_card,
-			max (e.datetime), C.ID_CARDTYPE, ct.name as CARDTYPENAME, p.authmode from people p
-			join card c on c.id_pep=p.id_pep
-			join cardtype ct on ct.id=c.id_cardtype
-			join organization o on o.id_org=p.id_org
-			left join events e on e.ess1=p.id_pep and e.id_card=c.id_card and e.id_eventtype in (50, 65)
-			where p.id_pep in ('.implode(",", $id_pep).')
-			group by p.id_pep, p.name, p.surname, p.patronymic, p.note,  o.name, c.id_card, C.ID_CARDTYPE, ct.name, p.authmode';
-			//echo Debug::vars('162', $sql); exit;
-			$query = DB::query(Database::SELECT, iconv('UTF-8','windows-1251',$sql))
-			//$query = DB::query(Database::SELECT, mb_convert_encoding($sql, 'UTF-8','windows-1251'))
-			//$query = DB::query(Database::SELECT, $sql)
-					->execute(Database::instance('fb'))
-					->as_array();
-			//echo Debug::vars('28', $sql, $query);exit;
-		
-			foreach ($query as $key=>$value)
-			{
-				$res[$key]=$value;
-				$res[$key]['NAME']=iconv('windows-1251','UTF-8',$value['NAME']);
-				$res[$key]['PATRONYMIC']=iconv('windows-1251','UTF-8',$value['PATRONYMIC']);
-				$res[$key]['SURNAME']=iconv('windows-1251','UTF-8',$value['SURNAME']);
-				$res[$key]['ORG_NAME']=iconv('windows-1251','UTF-8',$value['ORG_NAME']);
-				$res[$key]['NOTE']=iconv('windows-1251','UTF-8',$value['NOTE']);
-				$res[$key]['MAX']=Arr::get($value, 'MAX');
-				$res[$key]['CARDTYPE']=Arr::get($value, 'ID_CARDTYPE');
-				$res[$key]['CARDTYPENAME']=iconv('windows-1251','UTF-8',Arr::get($value, 'CARDTYPENAME'));
-				$res[$key]['AUTHMODE']=Arr::get($value, 'AUTHMODE');
-			}
-		}
-	return $res;
-		
-	}
+// people/classes/Model/People.php
+// Обновляем метод findIdPepInfo() - добавляем информацию об активности карты
+
+public function findIdPepInfo($id_pep)
+{
+    $res = array();
+    if(!empty($id_pep))
+    {
+        $sql = 'SELECT 
+                    p.id_pep, 
+                    p.name, 
+                    p.surname, 
+                    p.patronymic, 
+                    p.note,  
+                    o.name as org_name, 
+                    c.id_card,
+                    c."ACTIVE" as card_is_active,
+                    c.timeend,
+                    max(e.datetime) as last_event,
+                    C.ID_CARDTYPE, 
+                    ct.name as CARDTYPENAME, 
+                    p.authmode 
+                FROM people p
+                JOIN card c ON c.id_pep = p.id_pep
+                JOIN cardtype ct ON ct.id = c.id_cardtype
+                JOIN organization o ON o.id_org = p.id_org
+                LEFT JOIN events e ON e.ess1 = p.id_pep AND e.id_card = c.id_card AND e.id_eventtype IN (50, 65)
+                WHERE p.id_pep IN (' . implode(",", $id_pep) . ')
+                GROUP BY 
+                    p.id_pep, 
+                    p.name, 
+                    p.surname, 
+                    p.patronymic, 
+                    p.note,  
+                    o.name, 
+                    c.id_card,
+                    c."ACTIVE",
+                    c.timeend,
+                    C.ID_CARDTYPE, 
+                    ct.name, 
+                    p.authmode';
+        
+        $query = DB::query(Database::SELECT, iconv('UTF-8','windows-1251',$sql))
+                ->execute(Database::instance('fb'))
+                ->as_array();
+        
+        foreach ($query as $key=>$value)
+        {
+            $res[$key] = $value;
+            $res[$key]['NAME'] = iconv('windows-1251','UTF-8',$value['NAME']);
+            $res[$key]['PATRONYMIC'] = iconv('windows-1251','UTF-8',$value['PATRONYMIC']);
+            $res[$key]['SURNAME'] = iconv('windows-1251','UTF-8',$value['SURNAME']);
+            $res[$key]['ORG_NAME'] = iconv('windows-1251','UTF-8',$value['ORG_NAME']);
+            $res[$key]['NOTE'] = iconv('windows-1251','UTF-8',$value['NOTE']);
+            $res[$key]['MAX'] = Arr::get($value, 'MAX');
+            $res[$key]['CARDTYPE'] = Arr::get($value, 'ID_CARDTYPE');
+            $res[$key]['CARDTYPENAME'] = iconv('windows-1251','UTF-8',Arr::get($value, 'CARDTYPENAME'));
+            $res[$key]['AUTHMODE'] = Arr::get($value, 'AUTHMODE');
+            
+            // Добавляем информацию об активности карты
+            $res[$key]['CARD_IS_ACTIVE'] = Arr::get($value, 'CARD_IS_ACTIVE', 0);
+            $res[$key]['CARD_TIMEEND'] = Arr::get($value, 'TIMEEND');
+            
+            // Вычисляем статус карты
+            $card_status = 'active';
+            $card_status_text = __('Активна');
+            $card_status_color = 'success';
+            
+            if ($res[$key]['CARD_IS_ACTIVE'] == 0) {
+                $card_status = 'inactive';
+                $card_status_text = __('Неактивна');
+                $card_status_color = 'danger';
+            } elseif (!empty($res[$key]['CARD_TIMEEND']) && strtotime($res[$key]['CARD_TIMEEND']) < time()) {
+                $card_status = 'expired';
+                $card_status_text = __('Просрочена');
+                $card_status_color = 'warning';
+            }
+            
+            $res[$key]['CARD_STATUS'] = $card_status;
+            $res[$key]['CARD_STATUS_TEXT'] = $card_status_text;
+            $res[$key]['CARD_STATUS_COLOR'] = $card_status_color;
+        }
+    }
+    return $res;
+}
 	
 	
 	public function getPeople($id_pep, $id_card=false)//полученние данных для указанного ID сотрудника
