@@ -57,7 +57,7 @@ class Controller_People extends Controller_Template {
 	 }
 	
 	 
-	 public function action_find()
+/* 	 public function action_find()
 	 {
 	 	//echo Debug::vars('61', $_GET); exit;
 		$search=Arr::get($_GET, 'peopleInfo');
@@ -224,9 +224,171 @@ class Controller_People extends Controller_Template {
 	}
 		
 	 
-	 
+	  */
 	
-	
+	// people/classes/controller/People.php
+// Обновляем методы поиска с добавлением сообщения об отсутствии результатов
+
+public function action_find()
+{
+    $search = Arr::get($_GET, 'peopleInfo');
+    $_SESSION['peopleEventsTimeFrom'] = Arr::get($_GET, 'timeFrom', Date::formatted_time('-2 days', "d.m.Y H:i:s"));
+    $_SESSION['peopleEventsTimeTo'] = Arr::get($_GET, 'timeTo', Date::formatted_time('now', "d.m.Y H:i:s"));
+    
+    // Проверяем, что поисковый запрос не пустой
+    if (empty($search) || strlen($search) < 4) {
+        $content = View::Factory('people/search', array(
+            'error_message' => __('Для поиска необходимо ввести не менее 3-х букв')
+        ));
+        $this->template->content = $content;
+        return;
+    }
+    
+    $result = Model::Factory('People')->findIdPep($search);
+    
+    if (count($result) > 0) {
+        $content = View::Factory('people/select', array(
+            'list' => $result,
+            'search_query' => $search,
+            'search_type' => 'fio'
+        ));
+    } else {
+        $content = View::Factory('people/search', array(
+            'error_message' => __('По вашему запросу ":search" ничего не найдено.', array(':search' => htmlspecialchars($search)))
+        ));
+    }
+    
+    $this->template->content = $content;
+}
+
+public function action_findID()
+{
+    $post = Validation::factory($this->request->post());
+    $post->rule('idPepInfo', 'not_empty')
+         ->rule('idPepInfo', 'digit');
+    
+    if ($post->check()) {
+        $id_pep = Arr::get($post, 'idPepInfo');
+        $_SESSION['peopleEventsTimeFrom'] = Arr::get($_GET, 'timeFrom', Date::formatted_time('-2 days', "d.m.Y H:i:s"));
+        $_SESSION['peopleEventsTimeTo'] = Arr::get($_GET, 'timeTo', Date::formatted_time('now', "d.m.Y H:i:s"));
+        
+        $result = Model::Factory('People')->findIdPepInfo(array($id_pep));
+        
+        if (count($result) > 0) {
+            $content = View::Factory('people/select', array(
+                'list' => $result,
+                'search_query' => $id_pep,
+                'search_type' => 'id'
+            ));
+        } else {
+            $content = View::Factory('people/search', array(
+                'error_message' => __('Сотрудник с ID ":id" не найден.', array(':id' => htmlspecialchars($id_pep)))
+            ));
+        }
+    } else {
+        $content = View::Factory('people/search', array(
+            'error_message' => __('Пожалуйста, введите корректный ID сотрудника.')
+        ));
+    }
+    
+    $this->template->content = $content;
+}
+
+public function action_findAnyCard()
+{
+    $key = '';
+    $post = Validation::factory($this->request->post());
+    
+    switch (Arr::get($post, 'keyFormat')) {
+        case 'dec':
+            $post->rule('getCardInfo', 'not_empty')
+                 ->rule('getCardInfo', 'digit');
+            
+            if ($post->check()) {
+                switch (Kohana::$config->load('artonitcity_config')->baseFormatRfid) {
+                    case 0: // hex8
+                        $key = STR_PAD(strtoupper(dechex(Arr::get($post, 'getCardInfo'))), 8, '0', STR_PAD_LEFT);
+                        break;
+                    case 1: // 001A
+                        $key = Model::Factory('Stat')->decDigitTo001A(Arr::get($post, 'getCardInfo'));
+                        break;
+                }
+            }
+            break;
+            
+        case 'hex':
+            $post->rule('getCardInfo', 'not_empty')
+                 ->rule('getCardInfo', 'regex', array(':value', '/^[a-fA-F0-9]+$/'));
+            
+            if ($post->check()) {
+                $key = Arr::get($post, 'getCardInfo');
+                switch (Kohana::$config->load('artonitcity_config')->baseFormatRfid) {
+                    case 0: // hex8
+                        $key = STR_PAD(Arr::get($post, 'getCardInfo'), 8, '0', STR_PAD_LEFT);
+                        break;
+                    case 1: // 001A
+                        $key = Model::Factory('Stat')->decDigitTo001A(hexdec(Arr::get($post, 'getCardInfo')));
+                        break;
+                }
+            }
+            break;
+            
+        case 'none':
+            $key = Arr::get($post, 'getCardInfo');
+            break;
+            
+        default:
+            $content = View::Factory('people/search', array(
+                'error_message' => __('Неверный формат поиска.')
+            ));
+            $this->template->content = $content;
+            return;
+    }
+    
+    // Проверяем, что ключ не пустой
+    if (empty($key)) {
+        $content = View::Factory('people/search', array(
+            'error_message' => __('Пожалуйста, введите номер карты для поиска.')
+        ));
+        $this->template->content = $content;
+        return;
+    }
+    
+    // Получаем ID_PEP по номеру карты
+    $id_pep_array = Model::factory('People')->getIdPepFromCard($key);
+    
+    $_SESSION['peopleEventsTimeFrom'] = Arr::get($_GET, 'timeFrom', Date::formatted_time('-2 days', "d.m.Y H:i:s"));
+    $_SESSION['peopleEventsTimeTo'] = Arr::get($_GET, 'timeTo', Date::formatted_time('now', "d.m.Y H:i:s"));
+    
+    $id_pep = null;
+    if (is_array($id_pep_array) && !empty($id_pep_array)) {
+        foreach ($id_pep_array as $value) {
+            $id_pep[Arr::get($value, 'ID_PEP')] = Arr::get($value, 'ID_PEP');
+        }
+    }
+    
+    if (!empty($id_pep)) {
+        $result = Model::Factory('People')->findIdPepInfo($id_pep);
+        
+        if (count($result) > 0) {
+            $content = View::Factory('people/select', array(
+                'list' => $result,
+                'search_query' => $key,
+                'search_type' => 'card'
+            ));
+        } else {
+            $content = View::Factory('people/search', array(
+                'error_message' => __('По номеру карты ":card" ничего не найдено.', array(':card' => htmlspecialchars($key)))
+            ));
+        }
+    } else {
+        $content = View::Factory('people/search', array(
+            'error_message' => __('По номеру карты ":card" ничего не найдено.', array(':card' => htmlspecialchars($key)))
+        ));
+    }
+    
+    $this->template->content = $content;
+}
 	public function action_card_late_save_to_file()
 	{
 		Model::Factory('stat')->card_late_save_to_file();

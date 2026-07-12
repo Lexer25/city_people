@@ -1,3 +1,6 @@
+// people/views/People/search.php
+// Добавляем отображение сообщений об ошибках
+
 <div class="panel panel-primary">
     <div class="panel-heading">
         <h3 class="panel-title">
@@ -7,6 +10,24 @@
     </div>
     
     <div class="panel-body">
+        
+        <?php // Отображение сообщений об ошибках или результатах поиска ?>
+        <?php if (isset($error_message) && !empty($error_message)): ?>
+            <div class="alert alert-warning alert-dismissible fade in" role="alert">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                <?php echo $error_message; ?>
+                
+                <?php if (isset($search_query)): ?>
+                    <br>
+                    <small class="text-muted">
+                        <?php echo __('Вы искали') . ': ' . htmlspecialchars($search_query); ?>
+                    </small>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
         
         <!-- Все формы в одной строке -->
         <div class="row">
@@ -93,7 +114,7 @@
                             
                             <!-- Радио-кнопки в одну строку -->
                             <div class="row" style="margin-top: 8px;">
-								<div class="col-xs-4" style="padding-left: 2px;">
+                                <div class="col-xs-4" style="padding-left: 2px;">
                                     <label style="font-weight: normal; font-size: 11px; margin: 0;">
                                         <input type="radio" name="keyFormat" value="none" checked> 
                                         <span class="label label-warning" style="font-size: 10px;">Нет</span>
@@ -111,7 +132,6 @@
                                         <span class="label label-success" style="font-size: 10px;">DEC</span>
                                     </label>
                                 </div>
-                                
                             </div>
                         </form>
                     </div>
@@ -243,12 +263,41 @@
         $('input[name="idPepInfo"]').on('input', function() {
             this.value = this.value.replace(/[^0-9]/g, '');
         });
+        
+        // Автоматическое скрытие сообщений через 5 секунд
+        setTimeout(function() {
+            $('.alert-dismissible').fadeOut('slow', function() {
+                $(this).remove();
+            });
+        }, 5000);
     });
 </script>
 
-<!-- Дополнительные стили -->
 <style>
-    /* Уменьшаем отступы для компактности */
+    /* Стили для сообщений */
+    .alert-dismissible {
+        position: relative;
+        padding-right: 35px;
+    }
+    
+    .alert-dismissible .close {
+        position: absolute;
+        top: 50%;
+        right: 10px;
+        transform: translateY(-50%);
+        opacity: 0.5;
+        cursor: pointer;
+    }
+    
+    .alert-dismissible .close:hover {
+        opacity: 1;
+    }
+    
+    .alert-dismissible .glyphicon {
+        margin-right: 8px;
+    }
+    
+    /* Остальные стили как были */
     .panel-body {
         padding: 12px 15px;
     }
@@ -261,7 +310,6 @@
         font-size: 13px;
     }
     
-    /* Уменьшаем размер шрифта для компактности */
     .input-group-sm .form-control {
         font-size: 12px;
         height: 28px;
@@ -280,7 +328,6 @@
         height: 28px;
     }
     
-    /* Улучшение внешнего вида */
     .panel-default {
         transition: box-shadow 0.3s ease;
         height: 100%;
@@ -290,7 +337,6 @@
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
     
-    /* Стили для радио-кнопок в компактном виде */
     .radio-inline {
         font-size: 11px;
         margin: 0;
@@ -307,7 +353,6 @@
         padding: 1px 5px;
     }
     
-    /* Компактные кнопки быстрых ссылок */
     .btn-group-sm .btn {
         padding: 4px 3px;
         font-size: 11px;
@@ -319,7 +364,6 @@
         margin-right: 2px;
     }
     
-    /* Адаптивность */
     @media (max-width: 992px) {
         .col-sm-5, .col-sm-4, .col-sm-3 {
             width: 100% !important;
@@ -350,6 +394,10 @@
             margin-bottom: 3px;
             font-size: 10px;
             padding: 4px 2px;
+        }
+        
+        .alert-dismissible {
+            font-size: 13px;
         }
     }
 </style>
