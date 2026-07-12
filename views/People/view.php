@@ -1,7 +1,7 @@
-// people/views/People/view.php
-// Заменяем блок с категориями доступа на сворачиваемый с динамической иконкой
-
 <?php
+// people/views/People/view.php
+// Все блоки сделаны сворачиваемыми с динамическими иконками
+
 //echo Debug::vars('2', $contact);
 ?>
 <div class="panel panel-primary"> 
@@ -92,7 +92,7 @@
 		</tr>
 	</table>
 
-    <?php // НОВЫЙ БЛОК: Сворачиваемые категории доступа с динамической иконкой ?>
+    <?php // БЛОК: Категории доступа (сворачиваемый) ?>
     <div class="panel panel-info" id="accessPanel">
         <div class="panel-heading" role="tab" id="accessHeading">
             <h3 class="panel-title">
@@ -125,7 +125,7 @@
                     <div class="row">
                         <?php 
                         $total_categories = count($access_categories);
-                        $columns = 3; // Количество колонок
+                        $columns = 3;
                         $per_column = ceil($total_categories / $columns);
                         $current_index = 0;
                         ?>
@@ -149,7 +149,6 @@
                         <?php endfor; ?>
                     </div>
                     
-                    <!-- Информация о количестве -->
                     <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
                         <small class="text-muted">
                             <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
@@ -166,10 +165,7 @@
         </div>
     </div>
 	
-<!--// people/views/People/view.php
-// Обновляем блок "Точки прохода" с добавлением родительского контроллера-->
-
-    <?php // НОВЫЙ БЛОК: Точки прохода с группировкой категорий ?>
+    <?php // БЛОК: Точки прохода (сворачиваемый) ?>
     <div class="panel panel-success" id="devicesPanel">
         <div class="panel-heading" role="tab" id="devicesHeading">
             <h3 class="panel-title">
@@ -215,7 +211,6 @@
                                     $status_color = ($device['DEVICE_ACTIVE'] == 1) ? 'success' : 'danger';
                                     $status_text = ($device['DEVICE_ACTIVE'] == 1) ? __('Активно') : __('Неактивно');
                                     
-                                    // Статус контроллера
                                     $controller_status_color = 'default';
                                     $controller_status_text = '—';
                                     if (isset($device['CONTROLLER_ACTIVE'])) {
@@ -234,7 +229,6 @@
                                                 <small class="text-muted">(ID: <?php echo $device['ID_DEV']; ?>)</small>
                                             </div>
                                             
-                                            <!-- Информация об устройстве -->
                                             <div style="margin-top: 4px; font-size: 11px; color: #666;">
                                                 <?php if ($device['DEVTYPE_NAME'] != '—'): ?>
                                                     <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
@@ -252,7 +246,6 @@
                                                 <?php endif; ?>
                                             </div>
                                             
-                                            <!-- Информация о родительском контроллере -->
                                             <?php if (isset($device['CONTROLLER_NAME']) && $device['CONTROLLER_NAME'] != '—'): ?>
                                                 <div style="margin-top: 4px; padding: 3px 8px; background-color: #f8f8f8; border-radius: 3px; font-size: 11px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                                                     <span class="glyphicon glyphicon-th-large" aria-hidden="true" style="color: #337ab7;"></span>
@@ -285,7 +278,7 @@
                                                 <?php 
                                                 $access_names = $device['ACCESS_NAMES'];
                                                 $total_access = count($access_names);
-                                                $display_count = 5; // Показываем первые 5 категорий
+                                                $display_count = 5;
                                                 
                                                 foreach (array_slice($access_names, 0, $display_count) as $access_name): 
                                                 ?>
@@ -332,168 +325,228 @@
         </div>
     </div>
 
+    <?php // БЛОК: События (сворачиваемый) ?>
+    <div class="panel panel-primary" id="eventsPanel">
+        <div class="panel-heading" role="tab" id="eventsHeading">
+            <h3 class="panel-title">
+                <a role="button" 
+                   data-toggle="collapse" 
+                   data-parent="#accordion" 
+                   href="#eventsCollapse" 
+                   aria-expanded="true" 
+                   aria-controls="eventsCollapse"
+                   id="eventsToggle"
+                   style="display: block; text-decoration: none; color: inherit;">
+                    <span class="glyphicon glyphicon-list-alt" aria-hidden="true"></span>
+                    <?php echo __('people_event_title', array(
+                        ':dateFrom' => Arr::get($_SESSION, 'peopleEventsTimeFrom', date("d.m.Y H:i:s", strtotime("-1 days"))), 
+                        ':dateTo' => Arr::get($_SESSION, 'peopleEventsTimeTo', date("d.m.Y H:i:s"))
+                    )); ?>
+                    <span class="badge pull-right">
+                        <?php echo isset($events) ? count($events) : 0; ?>
+                    </span>
+                    <span class="pull-right toggle-icon" style="margin-right: 10px;">
+                        <span class="glyphicon glyphicon-chevron-up" aria-hidden="true" id="eventsIconCollapse"></span>
+                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true" id="eventsIconExpand" style="display: none;"></span>
+                    </span>
+                </a>
+            </h3>
+        </div>
+        <div id="eventsCollapse" 
+             class="panel-collapse collapse in" 
+             role="tabpanel" 
+             aria-labelledby="eventsHeading">
+            <div class="panel-body" style="padding: 0;">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-condensed table-bordered" style="margin: 0;">
+                        <thead>
+                            <tr>
+                                <th><?php echo __('timestamp');?></th>
+                                <th><?php echo __('door');?></th>
+                                <th><?php echo __('card');?></th>
+                                <th><?php echo __('note');?></th>
+                                <th><?php echo __('event_name');?></th>
+                                <th><?php echo __('event_analit');?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($events as $key=>$value)
+                            {
+                                $tr_color = 'warning';
+                                if(Arr::get($value, 'EVENT_ANALIT') == 0) $tr_color = 'success';
+                                echo '<tr class="'.$tr_color.'">';
+                                    echo '<td>'.date("d.m.Y H:i:s", strtotime(Arr::get($value, 'DATETIME'))).'</td>';
+                                    echo '<td>'.Arr::get($value, 'DOOR_NAME').'(ID_DEV='.Arr::get($value, 'ID_DEV').')</td>';
+                                    echo '<td>'.Arr::get($value, 'ID_CARD').'</td>';
+                                    echo '<td>'.Arr::get($value, 'NOTE').'</td>';
+                                    echo '<td>'.Arr::get($value, 'EVENT_NAME').'</td>';
+                                    echo '<td>';
+                                        echo(Arr::get($value, 'EVENT_ANALIT') == 1)? 'Да':'Нет';
+                                        echo ' ('.Arr::get($value, 'ANALIT_CODE').' ';
+                                        echo __(Arr::get($value, 'ANALIT_CODE').'a').')<br>';
+                                        if(Arr::get($value, 'ANALIT_CODE') == 657) {
+                                            $resultLoad = Arr::get($doors, Arr::get($value, 'ID_DEV'));
+                                            echo '<small>';
+                                            echo __('load_result').': ';
+                                            if(is_null(Arr::get($resultLoad, 'LOAD_TIME'))) {
+                                                echo __('no_result_load_card_in_device', 
+                                                    array(
+                                                        'LOAD_RESULT' => Arr::get($resultLoad, 'LOAD_RESULT'), 
+                                                        'CONTROLLER_NAME' => Arr::get($resultLoad, 'CONTROLLER_NAME'), 
+                                                        'DEVIDX' => Arr::get($resultLoad, 'DEVIDX'),
+                                                        'ID_READER' => Arr::get($resultLoad, 'ID_READER'), 
+                                                        'SERVER_NAME' => Arr::get($resultLoad, 'SERVER_NAME'),
+                                                        'ID_DEV' => Arr::get($resultLoad, 'ID_DEV')
+                                                    )
+                                                );
+                                                echo __('no_date_for_load_card_in_device');
+                                            } else { 
+                                                echo __('result_load_card_in_device', 
+                                                    array(
+                                                        'LOAD_RESULT' => Arr::get($resultLoad, 'LOAD_RESULT'), 
+                                                        'CONTROLLER_NAME' => Arr::get($resultLoad, 'CONTROLLER_NAME'), 
+                                                        'DEVIDX' => Arr::get($resultLoad, 'DEVIDX'),
+                                                        'ID_READER' => Arr::get($resultLoad, 'ID_READER'), 
+                                                        'SERVER_NAME' => Arr::get($resultLoad, 'SERVER_NAME'),
+                                                        'ID_DEV' => Arr::get($resultLoad, 'ID_DEV')
+                                                    )
+                                                );
+                                                echo date("d.m.Y H:i:s", strtotime(Arr::get($resultLoad, 'LOAD_TIME')));
+                                            }
+                                            echo '</small>';
+                                        }
+                                    echo '</td>';
+                                echo '</tr>';
+                            }
+                            ?>
+                        </tbody>
+                        <tfoot>
+                            <tr class="info">
+                                <td colspan="6">
+                                    <small class="text-muted">
+                                        <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                                        <?php echo __('Всего событий') . ': ' . count($events); ?>
+                                    </small>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 	
-
-<?php // таблица последний событий жильца?>
-	<div class="panel panel-primary">
-		<div class="panel-heading">
-			<h3 class="panel-title"><?php echo __('people_event_title', array(':dateFrom'=>Arr::get($_SESSION, 'peopleEventsTimeFrom', date("d.m.Y H:i:s",strtotime("-1 days"))), ':dateTo'=>Arr::get($_SESSION, 'peopleEventsTimeTo', date("d.m.Y H:i:s"))))?></h3>
-		</div>	
-	<?php //echo Debug::vars('88', $events);?>
-	<table class="table table-striped table-hover table-condensed table-bordered">
-					<tr>
-						<th><?php echo __('timestamp');?></th>
-						<th><?php echo __('door');?></th>
-						<th><?php echo __('card');?></th>
-						<th><?php echo __('note');?></th>
-						<th><?php echo __('event_name');?></th>
-						<th><?php echo __('event_analit');?></th>
-					</tr>
-						
-				<?php foreach ($events as $key=>$value)
-				{
-					$tr_color='warning';
-					if(Arr::get($value, 'EVENT_ANALIT') == 0) $tr_color='success';
-					echo '<tr class="'.$tr_color.'">';;
-						echo '<td>'.date("d.m.Y H:i:s", strtotime(Arr::get($value, 'DATETIME'))).'</td>';
-						echo '<td>'.Arr::get($value, 'DOOR_NAME').'(ID_DEV='.Arr::get($value, 'ID_DEV').')</td>';
-						echo '<td>'.Arr::get($value, 'ID_CARD').'</td>';
-						echo '<td>'.Arr::get($value, 'NOTE').'</td>';
-						echo '<td>'.Arr::get($value, 'EVENT_NAME').'</td>';
-						echo '<td>';
-							echo(Arr::get($value, 'EVENT_ANALIT') == 1)? 'Да':'Нет';
-							echo ' ('.Arr::get($value, 'ANALIT_CODE').' ';
-							echo __(Arr::get($value, 'ANALIT_CODE').'a').')<br>';
-							if(Arr::get($value, 'ANALIT_CODE') == 657) {
-								$resultLoad=Arr::get($doors, Arr::get($value, 'ID_DEV'));
-								echo '<small>';
-								//echo Debug::vars('116', $resultLoad);
-								echo __('load_result').': ';
-								if(is_null(Arr::get($resultLoad, 'LOAD_TIME'))) {
-									echo __('no_result_load_card_in_device', 
-										array('LOAD_RESULT'=>Arr::get($resultLoad, 'LOAD_RESULT'), 
-											'CONTROLLER_NAME'=> Arr::get($resultLoad, 'CONTROLLER_NAME'), 
-											'DEVIDX'=> Arr::get($resultLoad, 'DEVIDX'),
-											'ID_READER'=> Arr::get($resultLoad, 'ID_READER'), 
-											'SERVER_NAME'=> Arr::get($resultLoad, 'SERVER_NAME'),
-											'ID_DEV'=> Arr::get($resultLoad, 'ID_DEV')));
-										echo __('no_date_for_load_card_in_device');
-								} else { 
-									echo __('result_load_card_in_device', 
-										array('LOAD_RESULT'=>Arr::get($resultLoad, 'LOAD_RESULT'), 
-										'CONTROLLER_NAME'=> Arr::get($resultLoad, 'CONTROLLER_NAME'), 
-										'DEVIDX'=> Arr::get($resultLoad, 'DEVIDX'),
-										'ID_READER'=> Arr::get($resultLoad, 'ID_READER'), 
-										'SERVER_NAME'=> Arr::get($resultLoad, 'SERVER_NAME'),
-										'ID_DEV'=> Arr::get($resultLoad, 'ID_DEV')));
-									echo date("d.m.Y H:i:s", strtotime(Arr::get($resultLoad, 'LOAD_TIME')));
-								}
-									echo '</small>';
-							}		//echo Debug::vars('114', $resultLoad);
-																		
-							echo '</td>';
-					echo '</tr>';
-					
-				}
-							
-				?>
-	</table>
-	</div>
-	
-	<?php // таблица загрузки карты жильца в контроллеры?>
-	<div class="panel panel-primary">
-		<div class="panel-heading">
-			<h3 class="panel-title"><?php echo __('people_load_card')?></h3>
-		</div>	
-				<table class="table table-striped table-hover table-condensed table-bordered">
-					<tr>
-						<th><?php echo __('SER_NUM');?></th>
-						<th><?php echo __('door');?></th>
-						<th><?php echo __('load_result');?></th>
-						<th><?php echo __('load_time');?></th>
-						<th><?php echo __('load_del');?></th>
-						<th><?php echo __('load_insert');?></th>
-				<?php
-				$row_count=1;
-			//	echo Debug::vars('139', $doors);exit;
-				foreach ($doors as $key=>$value)
-				{
-					echo '<tr>';
-						echo '<td>'.$row_count++.'</td>';
-						echo '<td>'.Arr::get($value, 'NAME').'('.Arr::get($value, 'ID_DEV').')'.' '.Arr::get($value, 'STANDALONE').'  </td>';
-						
-						if(Arr::get($value, 'STANDALONE') == 0){
-							echo '<td>'.__('standalone').'</td>';
-							echo '<td>--</td>';
-						} else {
-							if(is_null(Arr::get($value, 'LOAD_TIME'))) {
-								echo '<td>'.__('no_result_load_card_in_device', array('LOAD_RESULT'=>Arr::get($value, 'LOAD_RESULT'), 'CONTROLLER_NAME'=> Arr::get($value, 'CONTROLLER_NAME'), 'DEVIDX'=> Arr::get($value, 'DEVIDX'),'ID_READER'=> Arr::get($value, 'ID_READER'), 'SERVER_NAME'=> Arr::get($value, 'SERVER_NAME'))).'</td>';
-								echo '<td>'.__('no_date_for_load_card_in_device').'</td>';
-							} else { 
-								echo '<td>'.__('result_load_card_in_device', array('LOAD_RESULT'=>Arr::get($value, 'LOAD_RESULT'), 'CONTROLLER_NAME'=> Arr::get($value, 'CONTROLLER_NAME'), 'DEVIDX'=> Arr::get($value, 'DEVIDX'),'ID_READER'=> Arr::get($value, 'ID_READER'), 'SERVER_NAME'=> Arr::get($value, 'SERVER_NAME'))).'</td>';
-								echo '<td>'.date("d.m.Y H:i:s", strtotime(Arr::get($value, 'LOAD_TIME'))).'</td>';
-							}
-						}	
-						
-						echo '<td>';
-							if(isset($value['LOAD_DEL'])) echo date("d.m.Y H:i:s", strtotime(Arr::get($value, 'LOAD_DEL')));
-						echo '</td>';
-						echo '<td>';
-							if(Arr::get($value, 'LOAD_INSERT')==1) {
-							echo HTML::image('static\images\green-check.png', array('alt' => 'Карта стоит в очереди на загрузку', 'title'=>Arr::get($value, 'TIME_INSERT')));
-							} else {
-								echo __('no');
-							}
-							
-						echo '</td>';
-						
-					echo '</tr>';
-					
-				}
-							
-				?>
-				</table>
-	</div>
+    <?php // БЛОК: Загрузка карты в контроллеры (сворачиваемый) ?>
+    <div class="panel panel-warning" id="loadCardPanel">
+        <div class="panel-heading" role="tab" id="loadCardHeading">
+            <h3 class="panel-title">
+                <a role="button" 
+                   data-toggle="collapse" 
+                   data-parent="#accordion" 
+                   href="#loadCardCollapse" 
+                   aria-expanded="true" 
+                   aria-controls="loadCardCollapse"
+                   id="loadCardToggle"
+                   style="display: block; text-decoration: none; color: inherit;">
+                    <span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
+                    <?php echo __('people_load_card'); ?>
+                    <span class="badge pull-right">
+                        <?php echo isset($doors) ? count($doors) : 0; ?>
+                    </span>
+                    <span class="pull-right toggle-icon" style="margin-right: 10px;">
+                        <span class="glyphicon glyphicon-chevron-up" aria-hidden="true" id="loadCardIconCollapse"></span>
+                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true" id="loadCardIconExpand" style="display: none;"></span>
+                    </span>
+                </a>
+            </h3>
+        </div>
+        <div id="loadCardCollapse" 
+             class="panel-collapse collapse in" 
+             role="tabpanel" 
+             aria-labelledby="loadCardHeading">
+            <div class="panel-body" style="padding: 0;">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover table-condensed table-bordered" style="margin: 0;">
+                        <thead>
+                            <tr>
+                                <th><?php echo __('SER_NUM');?></th>
+                                <th><?php echo __('door');?></th>
+                                <th><?php echo __('load_result');?></th>
+                                <th><?php echo __('load_time');?></th>
+                                <th><?php echo __('load_del');?></th>
+                                <th><?php echo __('load_insert');?></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $row_count = 1;
+                            foreach ($doors as $key=>$value)
+                            {
+                                echo '<tr>';
+                                    echo '<td>'.$row_count++.'</td>';
+                                    echo '<td>'.Arr::get($value, 'NAME').'('.Arr::get($value, 'ID_DEV').')'.' '.Arr::get($value, 'STANDALONE').'</td>';
+                                    
+                                    if(Arr::get($value, 'STANDALONE') == 0){
+                                        echo '<td>'.__('standalone').'</td>';
+                                        echo '<td>--</td>';
+                                    } else {
+                                        if(is_null(Arr::get($value, 'LOAD_TIME'))) {
+                                            echo '<td>'.__('no_result_load_card_in_device', array(
+                                                'LOAD_RESULT' => Arr::get($value, 'LOAD_RESULT'), 
+                                                'CONTROLLER_NAME' => Arr::get($value, 'CONTROLLER_NAME'), 
+                                                'DEVIDX' => Arr::get($value, 'DEVIDX'),
+                                                'ID_READER' => Arr::get($value, 'ID_READER'), 
+                                                'SERVER_NAME' => Arr::get($value, 'SERVER_NAME')
+                                            )).'</td>';
+                                            echo '<td>'.__('no_date_for_load_card_in_device').'</td>';
+                                        } else { 
+                                            echo '<td>'.__('result_load_card_in_device', array(
+                                                'LOAD_RESULT' => Arr::get($value, 'LOAD_RESULT'), 
+                                                'CONTROLLER_NAME' => Arr::get($value, 'CONTROLLER_NAME'), 
+                                                'DEVIDX' => Arr::get($value, 'DEVIDX'),
+                                                'ID_READER' => Arr::get($value, 'ID_READER'), 
+                                                'SERVER_NAME' => Arr::get($value, 'SERVER_NAME')
+                                            )).'</td>';
+                                            echo '<td>'.date("d.m.Y H:i:s", strtotime(Arr::get($value, 'LOAD_TIME'))).'</td>';
+                                        }
+                                    }
+                                    
+                                    echo '<td>';
+                                        if(isset($value['LOAD_DEL'])) echo date("d.m.Y H:i:s", strtotime(Arr::get($value, 'LOAD_DEL')));
+                                    echo '</td>';
+                                    echo '<td>';
+                                        if(Arr::get($value, 'LOAD_INSERT') == 1) {
+                                            echo HTML::image('static/images/green-check.png', array(
+                                                'alt' => 'Карта стоит в очереди на загрузку', 
+                                                'title' => Arr::get($value, 'TIME_INSERT'),
+                                                'style' => 'width: 20px; height: 20px;'
+                                            ));
+                                        } else {
+                                            echo __('no');
+                                        }
+                                    echo '</td>';
+                                echo '</tr>';
+                            }
+                            ?>
+                        </tbody>
+                        <tfoot>
+                            <tr class="info">
+                                <td colspan="6">
+                                    <small class="text-muted">
+                                        <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                                        <?php echo __('Всего устройств') . ': ' . count($doors); ?>
+                                    </small>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 
 </div>	
 </div>
-// people/views/People/view.php
-// Добавить в конце перед закрывающим тегом </div>
-
-<script type="text/javascript">
-$(document).ready(function() {
-    // Управление иконкой сворачивания/разворачивания
-    $('#accessCollapse').on('shown.bs.collapse', function() {
-        // Блок развернут - показываем иконку "свернуть" (вверх)
-        $('#iconCollapse').show();
-        $('#iconExpand').hide();
-        // Обновляем aria-expanded
-        $('#accessToggle').attr('aria-expanded', 'true');
-    });
-    
-    $('#accessCollapse').on('hidden.bs.collapse', function() {
-        // Блок свернут - показываем иконку "развернуть" (вниз)
-        $('#iconCollapse').hide();
-        $('#iconExpand').show();
-        // Обновляем aria-expanded
-        $('#accessToggle').attr('aria-expanded', 'false');
-    });
-    
-    // Инициализация: если блок по умолчанию развернут (class="in")
-    if ($('#accessCollapse').hasClass('in')) {
-        $('#iconCollapse').show();
-        $('#iconExpand').hide();
-        $('#accessToggle').attr('aria-expanded', 'true');
-    } else {
-        $('#iconCollapse').hide();
-        $('#iconExpand').show();
-        $('#accessToggle').attr('aria-expanded', 'false');
-    }
-});
-</script>
-
-// people/views/People/view.php
-// Добавляем в существующий скрипт
 
 <script type="text/javascript">
 $(document).ready(function() {
@@ -510,7 +563,6 @@ $(document).ready(function() {
         $('#accessToggle').attr('aria-expanded', 'false');
     });
     
-    // Инициализация для категорий доступа
     if ($('#accessCollapse').hasClass('in')) {
         $('#iconCollapse').show();
         $('#iconExpand').hide();
@@ -534,7 +586,6 @@ $(document).ready(function() {
         $('#devicesToggle').attr('aria-expanded', 'false');
     });
     
-    // Инициализация для точек прохода
     if ($('#devicesCollapse').hasClass('in')) {
         $('#devicesIconCollapse').show();
         $('#devicesIconExpand').hide();
@@ -545,8 +596,54 @@ $(document).ready(function() {
         $('#devicesToggle').attr('aria-expanded', 'false');
     }
     
+    // ===== Управление иконкой для событий =====
+    $('#eventsCollapse').on('shown.bs.collapse', function() {
+        $('#eventsIconCollapse').show();
+        $('#eventsIconExpand').hide();
+        $('#eventsToggle').attr('aria-expanded', 'true');
+    });
+    
+    $('#eventsCollapse').on('hidden.bs.collapse', function() {
+        $('#eventsIconCollapse').hide();
+        $('#eventsIconExpand').show();
+        $('#eventsToggle').attr('aria-expanded', 'false');
+    });
+    
+    if ($('#eventsCollapse').hasClass('in')) {
+        $('#eventsIconCollapse').show();
+        $('#eventsIconExpand').hide();
+        $('#eventsToggle').attr('aria-expanded', 'true');
+    } else {
+        $('#eventsIconCollapse').hide();
+        $('#eventsIconExpand').show();
+        $('#eventsToggle').attr('aria-expanded', 'false');
+    }
+    
+    // ===== Управление иконкой для загрузки карты =====
+    $('#loadCardCollapse').on('shown.bs.collapse', function() {
+        $('#loadCardIconCollapse').show();
+        $('#loadCardIconExpand').hide();
+        $('#loadCardToggle').attr('aria-expanded', 'true');
+    });
+    
+    $('#loadCardCollapse').on('hidden.bs.collapse', function() {
+        $('#loadCardIconCollapse').hide();
+        $('#loadCardIconExpand').show();
+        $('#loadCardToggle').attr('aria-expanded', 'false');
+    });
+    
+    if ($('#loadCardCollapse').hasClass('in')) {
+        $('#loadCardIconCollapse').show();
+        $('#loadCardIconExpand').hide();
+        $('#loadCardToggle').attr('aria-expanded', 'true');
+    } else {
+        $('#loadCardIconCollapse').hide();
+        $('#loadCardIconExpand').show();
+        $('#loadCardToggle').attr('aria-expanded', 'false');
+    }
+    
     // ===== Подсветка строк таблицы при наведении =====
-    $('#devicesCollapse .table tbody tr').hover(
+    $('#devicesCollapse .table tbody tr, #eventsCollapse .table tbody tr, #loadCardCollapse .table tbody tr').hover(
         function() {
             $(this).css('background-color', '#f0f8ff');
         },
@@ -556,3 +653,68 @@ $(document).ready(function() {
     );
 });
 </script>
+
+<style type="text/css">
+/* Стили для сворачиваемых блоков */
+.panel-heading a {
+    transition: all 0.3s ease;
+}
+
+.panel-heading a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.toggle-icon .glyphicon {
+    transition: transform 0.3s ease;
+}
+
+/* Стили для таблиц */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.table thead th {
+    background-color: #f5f5f5;
+    border-bottom: 2px solid #ddd;
+    font-weight: 600;
+}
+
+.table tbody td {
+    vertical-align: middle;
+}
+
+.table tfoot td {
+    background-color: #f5f5f5;
+}
+
+/* Анимация сворачивания */
+.collapse {
+    transition: height 0.35s ease;
+}
+
+/* Стили для информационных блоков */
+.device-controller-info {
+    border-left: 3px solid #337ab7;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .table {
+        font-size: 12px;
+    }
+    
+    .table .label {
+        font-size: 10px;
+        padding: 2px 5px;
+    }
+    
+    .panel-heading .badge {
+        font-size: 10px;
+    }
+}
+</style>
