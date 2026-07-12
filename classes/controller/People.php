@@ -247,7 +247,7 @@ class Controller_People extends Controller_Template {
 		$t1=microtime(1);
 		$result=Model::Factory('stat')->Get_people_late();
 		$t2=microtime(1);
-		$this->template->full_width = true;
+		$this->set_full_width(true);
 		$content=View::Factory('people/card_late', array(
 			'list' => $result,
 			'delay'=>$t2-$t1,
@@ -438,7 +438,7 @@ private function card_unactive($id_cards)
 public function action_access_search()
 {
     $_SESSION['menu_active'] = 'people';
-	//$this->template->full_width = true;
+	//$this->set_full_width(true);
     
     // Получаем все категории доступа с количеством сотрудников
     $access_names = Model::Factory('People')->getAccessNames();
