@@ -759,6 +759,38 @@ public function getPeopleCountByAccess($access_id)
     return (int) $query->get('CNT');
 }
 
+public function getPeopleAccessCategories($id_pep)
+{
+    if (empty($id_pep)) {
+        return array();
+    }
+    
+    // Альтернативный способ с использованием ? 
+    $sql = 'SELECT 
+                an.ID_ACCESSNAME,
+                an.NAME,
+                an.TIME_STAMP,
+                sau.ID_PEP
+            FROM SS_ACCESSUSER sau
+            JOIN ACCESSNAME an ON an.ID_ACCESSNAME = sau.ID_ACCESSNAME
+            WHERE sau.ID_PEP = '.$id_pep.'
+            ORDER BY an.NAME';
+ 
+    $query = DB::query(Database::SELECT, $sql)
+               ->execute(Database::instance('fb'))
+        ->as_array();
+    
+    $result = array();
+    foreach ($query as $row) {
+        $result[] = array(
+            'ID_ACCESSNAME' => $row['ID_ACCESSNAME'],
+            'NAME' => iconv('windows-1251', 'UTF-8', $row['NAME']),
+            'TIME_STAMP' => $row['TIME_STAMP']
+        );
+    }
+    
+    return $result;
+}
 
 	
 }

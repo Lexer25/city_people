@@ -1,3 +1,6 @@
+// people/views/People/view.php
+// Добавляем блок с категориями доступа после таблицы общих данных
+
 <?php
 //echo Debug::vars('2', $contact);
 ?>
@@ -88,6 +91,40 @@
 			
 		</tr>
 	</table>
+
+    <?php // НОВЫЙ БЛОК: Категории доступа ?>
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <h3 class="panel-title">
+                <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+                <?php echo __('Категории доступа'); ?>
+                <span class="badge pull-right"><?php echo isset($access_categories) ? count($access_categories) : 0; ?></span>
+            </h3>
+        </div>
+        <div class="panel-body">
+            <?php if (isset($access_categories) && !empty($access_categories)): ?>
+                <div class="row">
+                    <?php foreach ($access_categories as $category): ?>
+                        <div class="col-md-4 col-sm-6" style="margin-bottom: 8px;">
+                            <span class="label label-primary" style="display: inline-block; padding: 5px 10px; font-size: 12px;">
+                                <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
+                                <?php echo htmlspecialchars($category['NAME']); ?>
+                                <small class="text-muted" style="color: #ddd;">
+                                    (ID: <?php echo $category['ID_ACCESSNAME']; ?>)
+                                </small>
+                            </span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php else: ?>
+                <div class="alert alert-info" style="margin: 0;">
+                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                    <?php echo __('У сотрудника нет категорий доступа'); ?>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
 <?php // таблица последний событий жильца?>
 	<div class="panel panel-primary">
 		<div class="panel-heading">

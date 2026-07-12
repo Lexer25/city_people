@@ -299,14 +299,25 @@ class Controller_People extends Controller_Template {
 			$people_parking=Model::Factory('Parking') -> event_people($id_pep);//Информация о нахождении на парковке
 			$people_parking_errors=Model::Factory('Parking') -> parking_error($id_pep);//Информация о нарушениях парковки
 			//echo Debug::vars('125', $people_data, $id_pep); exit;
-		$content=View::Factory('people/view', array(
+		/* $content=View::Factory('people/view', array(
 			'contact'	=> $people_data,
 			'doors'	=> $people_door,
 			'events'	=> $people_event,
 			'parking'	=> $people_parking,
 			'people_parking_errors'	=> $people_parking_errors,
 			
-			));
+			)); */
+			
+			$people_access_categories = Model::Factory('People')->getPeopleAccessCategories($id_pep);
+    
+    $content = View::Factory('people/view', array(
+        'contact' => $people_data,
+        'doors' => $people_door,
+        'events' => $people_event,
+        'parking' => $people_parking,
+        'people_parking_errors' => $people_parking_errors,
+        'access_categories' => $people_access_categories, // НОВАЯ ПЕРЕМЕННАЯ
+    ));
 			
 		$this->template->content = $content;
 	}
