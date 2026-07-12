@@ -793,14 +793,15 @@ public function getPeopleAccessCategories($id_pep)
 }
 
 // people/classes/Model/People.php
-// Обновляем метод getPeopleAccessDevices()
+// Обновляем метод getPeopleAccessDevices() с добавлением информации о загрузке карты
 
 /**
- * Получить список точек прохода с группировкой по устройствам
+ * Получить список точек прохода с группировкой по устройствам и информацией о загрузке карты
  * @param int $id_pep ID сотрудника
- * @return array Список точек прохода с объединенными категориями
+ * @param string $id_card ID карты (опционально)
+ * @return array Список точек прохода с объединенными категориями и информацией о загрузке
  */
-public function getPeopleAccessDevices($id_pep)
+public function getPeopleAccessDevices($id_pep, $id_card = null)
 {
     if (empty($id_pep)) {
         return array();
@@ -823,7 +824,13 @@ public function getPeopleAccessDevices($id_pep)
                 d2.NAME AS CONTROLLER_NAME,
                 d2.ID_DEV AS CONTROLLER_ID,
                 d2."ACTIVE" AS CONTROLLER_ACTIVE,
-                d2.NETADDR AS CONTROLLER_IP
+                d2.NETADDR AS CONTROLLER_IP,
+                cd.LOAD_TIME,
+                cd.LOAD_RESULT,
+                cd.DEVIDX,
+                cdd.OPERATION,
+                cdd.TIME_STAMP AS QUEUE_TIME,
+                cdd.ATTEMPTS
             FROM SS_ACCESSUSER sau
             JOIN ACCESSNAME an ON an.ID_ACCESSNAME = sau.ID_ACCESSNAME
             JOIN ACCESS a ON a.ID_ACCESSNAME = sau.ID_ACCESSNAME
@@ -831,9 +838,17 @@ public function getPeopleAccessDevices($id_pep)
             LEFT JOIN DEVTYPE dt ON dt.ID_DEVTYPE = d.ID_DEVTYPE
             LEFT JOIN DEVICE d2 ON d2.ID_CTRL = d.ID_CTRL AND d2.ID_READER IS NULL
             LEFT JOIN SERVER s ON s.ID_SERVER = d.ID_SERVER
-            WHERE sau.ID_PEP = ' . $id_pep . '
-            ORDER BY d.NAME, an.NAME';
-
+            LEFT JOIN card c ON c.ID_PEP = sau.ID_PEP
+            LEFT JOIN cardidx cd ON cd.ID_CARD = c.ID_CARD AND cd.ID_DEV = d.ID_DEV
+            LEFT JOIN cardindev cdd ON cdd.ID_PEP = sau.ID_PEP AND cdd.ID_DEV = d.ID_DEV AND cdd.OPERATION = 1
+            WHERE sau.ID_PEP = ' . $id_pep;
+            
+    if ($id_card) {
+        $sql .= ' AND c.ID_CARD = \'' . $id_card . '\'';
+    }
+    
+    $sql .= ' ORDER BY d.NAME, an.NAME';
+    
     $query = DB::query(Database::SELECT, $sql)
         ->execute(Database::instance('fb'))
         ->as_array();
@@ -857,6 +872,12 @@ public function getPeopleAccessDevices($id_pep)
                 'CONTROLLER_ID' => $row['CONTROLLER_ID'],
                 'CONTROLLER_ACTIVE' => $row['CONTROLLER_ACTIVE'],
                 'CONTROLLER_IP' => $row['CONTROLLER_IP'],
+                'LOAD_TIME' => $row['LOAD_TIME'],
+                'LOAD_RESULT' => $row['LOAD_RESULT'],
+                'DEVIDX' => $row['DEVIDX'],
+                'OPERATION' => $row['OPERATION'],
+                'QUEUE_TIME' => $row['QUEUE_TIME'],
+                'ATTEMPTS' => $row['ATTEMPTS'],
                 'ACCESS_NAMES' => array()
             );
         }

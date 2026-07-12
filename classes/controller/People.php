@@ -288,6 +288,7 @@ class Controller_People extends Controller_Template {
 	
 	public function action_peopleInfo($id_pep=false)//подготовка информации по выбранному пользователю
 	{
+			$this->set_full_width(true);
 			$id_pep = $this->request->param('id');
 			$id_card = $this->request->param('card');
 			$_SESSION['menu_active']='people';
