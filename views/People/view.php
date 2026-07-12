@@ -1,5 +1,5 @@
 // people/views/People/view.php
-// Добавляем блок с категориями доступа после таблицы общих данных
+// Заменяем блок с категориями доступа на сворачиваемый с динамической иконкой
 
 <?php
 //echo Debug::vars('2', $contact);
@@ -92,36 +92,77 @@
 		</tr>
 	</table>
 
-    <?php // НОВЫЙ БЛОК: Категории доступа ?>
-    <div class="panel panel-info">
-        <div class="panel-heading">
+    <?php // НОВЫЙ БЛОК: Сворачиваемые категории доступа с динамической иконкой ?>
+    <div class="panel panel-info" id="accessPanel">
+        <div class="panel-heading" role="tab" id="accessHeading">
             <h3 class="panel-title">
-                <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
-                <?php echo __('Категории доступа'); ?>
-                <span class="badge pull-right"><?php echo isset($access_categories) ? count($access_categories) : 0; ?></span>
+                <a role="button" 
+                   data-toggle="collapse" 
+                   data-parent="#accordion" 
+                   href="#accessCollapse" 
+                   aria-expanded="true" 
+                   aria-controls="accessCollapse"
+                   id="accessToggle"
+                   style="display: block; text-decoration: none; color: inherit;">
+                    <span class="glyphicon glyphicon-lock" aria-hidden="true"></span>
+                    <?php echo __('Категории доступа'); ?>
+                    <span class="badge pull-right">
+                        <?php echo isset($access_categories) ? count($access_categories) : 0; ?>
+                    </span>
+                    <span class="pull-right toggle-icon" style="margin-right: 10px;">
+                        <span class="glyphicon glyphicon-chevron-up" aria-hidden="true" id="iconCollapse"></span>
+                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true" id="iconExpand" style="display: none;"></span>
+                    </span>
+                </a>
             </h3>
         </div>
-        <div class="panel-body">
-            <?php if (isset($access_categories) && !empty($access_categories)): ?>
-                <div class="row">
-                    <?php foreach ($access_categories as $category): ?>
-                        <div class="col-md-4 col-sm-6" style="margin-bottom: 8px;">
-                            <span class="label label-primary" style="display: inline-block; padding: 5px 10px; font-size: 12px;">
-                                <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
-                                <?php echo htmlspecialchars($category['NAME']); ?>
-                                <small class="text-muted" style="color: #ddd;">
-                                    (ID: <?php echo $category['ID_ACCESSNAME']; ?>)
-                                </small>
-                            </span>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-            <?php else: ?>
-                <div class="alert alert-info" style="margin: 0;">
-                    <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-                    <?php echo __('У сотрудника нет категорий доступа'); ?>
-                </div>
-            <?php endif; ?>
+        <div id="accessCollapse" 
+             class="panel-collapse collapse in" 
+             role="tabpanel" 
+             aria-labelledby="accessHeading">
+            <div class="panel-body">
+                <?php if (isset($access_categories) && !empty($access_categories)): ?>
+                    <div class="row">
+                        <?php 
+                        $total_categories = count($access_categories);
+                        $columns = 3; // Количество колонок
+                        $per_column = ceil($total_categories / $columns);
+                        $current_index = 0;
+                        ?>
+                        
+                        <?php for ($col = 0; $col < $columns; $col++): ?>
+                            <div class="col-md-4 col-sm-6">
+                                <?php for ($i = 0; $i < $per_column && $current_index < $total_categories; $i++, $current_index++): 
+                                    $category = $access_categories[$current_index];
+                                ?>
+                                    <div style="margin-bottom: 5px;">
+                                        <span class="label label-primary" style="display: inline-block; padding: 5px 10px; font-size: 12px; width: 100%;">
+                                            <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
+                                            <?php echo htmlspecialchars($category['NAME']); ?>
+                                            <small class="text-muted" style="color: #d9edf7; float: right;">
+                                                ID: <?php echo $category['ID_ACCESSNAME']; ?>
+                                            </small>
+                                        </span>
+                                    </div>
+                                <?php endfor; ?>
+                            </div>
+                        <?php endfor; ?>
+                    </div>
+                    
+                    <!-- Информация о количестве -->
+                    <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid #eee;">
+                        <small class="text-muted">
+                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                            <?php echo __('Всего категорий') . ': ' . count($access_categories); ?>
+                        </small>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-info" style="margin: 0;">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        <?php echo __('У сотрудника нет категорий доступа'); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 
@@ -248,3 +289,37 @@
 
 </div>	
 </div>
+// people/views/People/view.php
+// Добавить в конце перед закрывающим тегом </div>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    // Управление иконкой сворачивания/разворачивания
+    $('#accessCollapse').on('shown.bs.collapse', function() {
+        // Блок развернут - показываем иконку "свернуть" (вверх)
+        $('#iconCollapse').show();
+        $('#iconExpand').hide();
+        // Обновляем aria-expanded
+        $('#accessToggle').attr('aria-expanded', 'true');
+    });
+    
+    $('#accessCollapse').on('hidden.bs.collapse', function() {
+        // Блок свернут - показываем иконку "развернуть" (вниз)
+        $('#iconCollapse').hide();
+        $('#iconExpand').show();
+        // Обновляем aria-expanded
+        $('#accessToggle').attr('aria-expanded', 'false');
+    });
+    
+    // Инициализация: если блок по умолчанию развернут (class="in")
+    if ($('#accessCollapse').hasClass('in')) {
+        $('#iconCollapse').show();
+        $('#iconExpand').hide();
+        $('#accessToggle').attr('aria-expanded', 'true');
+    } else {
+        $('#iconCollapse').hide();
+        $('#iconExpand').show();
+        $('#accessToggle').attr('aria-expanded', 'false');
+    }
+});
+</script>
