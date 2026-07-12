@@ -295,7 +295,6 @@ class Controller_People extends Controller_Template {
 			//echo Debug::vars('44 peopleInfo', 'POST:', $_POST, 'GET:', $_GET,'id_pep:',  $id_pep, 'SESSION:', $_SESSION); exit;
 			if ($id_pep == NULL) $this->redirect('people/find');
 			$people_data=Model::Factory('People')->getPeople($id_pep, $id_card);//персональные данные
-			$people_door=Model::Factory('People')->getPeopleDoor($id_pep, $id_card);//Точки прохода, куда может ходить пользователь
 			$people_event=Model::Factory('Event') -> event_people($id_pep, $id_card);//события по пользователю за последние 24 часа.
 			$people_parking=Model::Factory('Parking') -> event_people($id_pep);//Информация о нахождении на парковке
 			$people_parking_errors=Model::Factory('Parking') -> parking_error($id_pep);//Информация о нарушениях парковки
@@ -317,7 +316,6 @@ class Controller_People extends Controller_Template {
     
     $content = View::Factory('people/view', array(
         'contact' => $people_data,
-        'doors' => $people_door,
         'events' => $people_event,
         'parking' => $people_parking,
         'people_parking_errors' => $people_parking_errors,

@@ -165,8 +165,6 @@
         </div>
     </div>
 	
-// people/views/People/view.php
-// Обновляем блок "Точки прохода" с добавлением информации о загрузке карты
 
     <?php // БЛОК: Точки прохода (сворачиваемый) с информацией о загрузке карты ?>
     <div class="panel panel-success" id="devicesPanel">
@@ -516,114 +514,7 @@
         </div>
     </div>
 	
-    <?php // БЛОК: Загрузка карты в контроллеры (сворачиваемый) ?>
-    <div class="panel panel-warning" id="loadCardPanel">
-        <div class="panel-heading" role="tab" id="loadCardHeading">
-            <h3 class="panel-title">
-                <a role="button" 
-                   data-toggle="collapse" 
-                   data-parent="#accordion" 
-                   href="#loadCardCollapse" 
-                   aria-expanded="true" 
-                   aria-controls="loadCardCollapse"
-                   id="loadCardToggle"
-                   style="display: block; text-decoration: none; color: inherit;">
-                    <span class="glyphicon glyphicon-upload" aria-hidden="true"></span>
-                    <?php echo __('people_load_card'); ?>
-                    <span class="badge pull-right">
-                        <?php echo isset($doors) ? count($doors) : 0; ?>
-                    </span>
-                    <span class="pull-right toggle-icon" style="margin-right: 10px;">
-                        <span class="glyphicon glyphicon-chevron-up" aria-hidden="true" id="loadCardIconCollapse"></span>
-                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true" id="loadCardIconExpand" style="display: none;"></span>
-                    </span>
-                </a>
-            </h3>
-        </div>
-        <div id="loadCardCollapse" 
-             class="panel-collapse collapse in" 
-             role="tabpanel" 
-             aria-labelledby="loadCardHeading">
-            <div class="panel-body" style="padding: 0;">
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover table-condensed table-bordered" style="margin: 0;">
-                        <thead>
-                            <tr>
-                                <th><?php echo __('SER_NUM');?></th>
-                                <th><?php echo __('door');?></th>
-                                <th><?php echo __('load_result');?></th>
-                                <th><?php echo __('load_time');?></th>
-                                <th><?php echo __('load_del');?></th>
-                                <th><?php echo __('load_insert');?></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $row_count = 1;
-                            foreach ($doors as $key=>$value)
-                            {
-                                echo '<tr>';
-                                    echo '<td>'.$row_count++.'</td>';
-                                    echo '<td>'.Arr::get($value, 'NAME').'('.Arr::get($value, 'ID_DEV').')'.' '.Arr::get($value, 'STANDALONE').'</td>';
-                                    
-                                    if(Arr::get($value, 'STANDALONE') == 0){
-                                        echo '<td>'.__('standalone').'</td>';
-                                        echo '<td>--</td>';
-                                    } else {
-                                        if(is_null(Arr::get($value, 'LOAD_TIME'))) {
-                                            echo '<td>'.__('no_result_load_card_in_device', array(
-                                                'LOAD_RESULT' => Arr::get($value, 'LOAD_RESULT'), 
-                                                'CONTROLLER_NAME' => Arr::get($value, 'CONTROLLER_NAME'), 
-                                                'DEVIDX' => Arr::get($value, 'DEVIDX'),
-                                                'ID_READER' => Arr::get($value, 'ID_READER'), 
-                                                'SERVER_NAME' => Arr::get($value, 'SERVER_NAME')
-                                            )).'</td>';
-                                            echo '<td>'.__('no_date_for_load_card_in_device').'</td>';
-                                        } else { 
-                                            echo '<td>'.__('result_load_card_in_device', array(
-                                                'LOAD_RESULT' => Arr::get($value, 'LOAD_RESULT'), 
-                                                'CONTROLLER_NAME' => Arr::get($value, 'CONTROLLER_NAME'), 
-                                                'DEVIDX' => Arr::get($value, 'DEVIDX'),
-                                                'ID_READER' => Arr::get($value, 'ID_READER'), 
-                                                'SERVER_NAME' => Arr::get($value, 'SERVER_NAME')
-                                            )).'</td>';
-                                            echo '<td>'.date("d.m.Y H:i:s", strtotime(Arr::get($value, 'LOAD_TIME'))).'</td>';
-                                        }
-                                    }
-                                    
-                                    echo '<td>';
-                                        if(isset($value['LOAD_DEL'])) echo date("d.m.Y H:i:s", strtotime(Arr::get($value, 'LOAD_DEL')));
-                                    echo '</td>';
-                                    echo '<td>';
-                                        if(Arr::get($value, 'LOAD_INSERT') == 1) {
-                                            echo HTML::image('static/images/green-check.png', array(
-                                                'alt' => 'Карта стоит в очереди на загрузку', 
-                                                'title' => Arr::get($value, 'TIME_INSERT'),
-                                                'style' => 'width: 20px; height: 20px;'
-                                            ));
-                                        } else {
-                                            echo __('no');
-                                        }
-                                    echo '</td>';
-                                echo '</tr>';
-                            }
-                            ?>
-                        </tbody>
-                        <tfoot>
-                            <tr class="info">
-                                <td colspan="6">
-                                    <small class="text-muted">
-                                        <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
-                                        <?php echo __('Всего устройств') . ': ' . count($doors); ?>
-                                    </small>
-                                </td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
 </div>	
 </div>
