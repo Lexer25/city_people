@@ -165,6 +165,174 @@
             </div>
         </div>
     </div>
+	
+<!--// people/views/People/view.php
+// Обновляем блок "Точки прохода" с добавлением родительского контроллера-->
+
+    <?php // НОВЫЙ БЛОК: Точки прохода с группировкой категорий ?>
+    <div class="panel panel-success" id="devicesPanel">
+        <div class="panel-heading" role="tab" id="devicesHeading">
+            <h3 class="panel-title">
+                <a role="button" 
+                   data-toggle="collapse" 
+                   data-parent="#accordion" 
+                   href="#devicesCollapse" 
+                   aria-expanded="true" 
+                   aria-controls="devicesCollapse"
+                   id="devicesToggle"
+                   style="display: block; text-decoration: none; color: inherit;">
+                    <span class="glyphicon glyphicon-screenshot" aria-hidden="true"></span>
+                    <?php echo __('Точки прохода'); ?>
+                    <span class="badge pull-right">
+                        <?php echo isset($access_devices) ? count($access_devices) : 0; ?>
+                    </span>
+                    <span class="pull-right toggle-icon" style="margin-right: 10px;">
+                        <span class="glyphicon glyphicon-chevron-up" aria-hidden="true" id="devicesIconCollapse"></span>
+                        <span class="glyphicon glyphicon-chevron-down" aria-hidden="true" id="devicesIconExpand" style="display: none;"></span>
+                    </span>
+                </a>
+            </h3>
+        </div>
+        <div id="devicesCollapse" 
+             class="panel-collapse collapse in" 
+             role="tabpanel" 
+             aria-labelledby="devicesHeading">
+            <div class="panel-body">
+                <?php if (isset($access_devices) && !empty($access_devices)): ?>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-condensed table-bordered">
+                            <thead>
+                                <tr class="active">
+                                    <th style="width: 40px;">#</th>
+                                    <th><?php echo __('Точка прохода'); ?></th>
+                                    <th><?php echo __('Категории доступа'); ?></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                $row_num = 1;
+                                foreach ($access_devices as $device): 
+                                    $status_color = ($device['DEVICE_ACTIVE'] == 1) ? 'success' : 'danger';
+                                    $status_text = ($device['DEVICE_ACTIVE'] == 1) ? __('Активно') : __('Неактивно');
+                                    
+                                    // Статус контроллера
+                                    $controller_status_color = 'default';
+                                    $controller_status_text = '—';
+                                    if (isset($device['CONTROLLER_ACTIVE'])) {
+                                        $controller_status_color = ($device['CONTROLLER_ACTIVE'] == 1) ? 'success' : 'danger';
+                                        $controller_status_text = ($device['CONTROLLER_ACTIVE'] == 1) ? __('Активно') : __('Неактивно');
+                                    }
+                                ?>
+                                    <tr>
+                                        <td class="text-center"><?php echo $row_num++; ?></td>
+                                        <td>
+                                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                <span class="label label-<?php echo $status_color; ?>" style="font-size: 10px; min-width: 60px;">
+                                                    <?php echo $status_text; ?>
+                                                </span>
+                                                <strong><?php echo htmlspecialchars($device['DEVICE_NAME']); ?></strong>
+                                                <small class="text-muted">(ID: <?php echo $device['ID_DEV']; ?>)</small>
+                                            </div>
+                                            
+                                            <!-- Информация об устройстве -->
+                                            <div style="margin-top: 4px; font-size: 11px; color: #666;">
+                                                <?php if ($device['DEVTYPE_NAME'] != '—'): ?>
+                                                    <span class="glyphicon glyphicon-tag" aria-hidden="true"></span>
+                                                    <?php echo htmlspecialchars($device['DEVTYPE_NAME']); ?>
+                                                <?php endif; ?>
+                                                
+                                                <?php if ($device['ID_READER']): ?>
+                                                    <span class="glyphicon glyphicon-qrcode" aria-hidden="true" style="margin-left: 10px;"></span>
+                                                    Reader: <?php echo $device['ID_READER']; ?>
+                                                <?php endif; ?>
+                                                
+                                                <?php if ($device['NETADDR']): ?>
+                                                    <span class="glyphicon glyphicon-globe" aria-hidden="true" style="margin-left: 10px;"></span>
+                                                    <code><?php echo htmlspecialchars($device['NETADDR']); ?></code>
+                                                <?php endif; ?>
+                                            </div>
+                                            
+                                            <!-- Информация о родительском контроллере -->
+                                            <?php if (isset($device['CONTROLLER_NAME']) && $device['CONTROLLER_NAME'] != '—'): ?>
+                                                <div style="margin-top: 4px; padding: 3px 8px; background-color: #f8f8f8; border-radius: 3px; font-size: 11px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                                    <span class="glyphicon glyphicon-th-large" aria-hidden="true" style="color: #337ab7;"></span>
+                                                    <span style="color: #555;"><?php echo __('Родительский контроллер') . ':'; ?></span>
+                                                    <span class="label label-<?php echo $controller_status_color; ?>" style="font-size: 9px; padding: 1px 6px;">
+                                                        <?php echo $controller_status_text; ?>
+                                                    </span>
+                                                    <strong style="color: #337ab7;"><?php echo htmlspecialchars($device['CONTROLLER_NAME']); ?></strong>
+                                                    <small class="text-muted">(ID: <?php echo $device['CONTROLLER_ID']; ?>)</small>
+                                                    
+                                                    <?php if ($device['CONTROLLER_IP']): ?>
+                                                        <span class="glyphicon glyphicon-globe" aria-hidden="true" style="color: #999; margin-left: 5px;"></span>
+                                                        <code style="font-size: 10px;"><?php echo htmlspecialchars($device['CONTROLLER_IP']); ?></code>
+                                                    <?php endif; ?>
+                                                    
+                                                    <?php if (isset($device['SERVER_NAME']) && $device['SERVER_NAME'] != '—'): ?>
+                                                        <span class="glyphicon glyphicon-hdd" aria-hidden="true" style="color: #999; margin-left: 5px;"></span>
+                                                        <span style="color: #999;"><?php echo htmlspecialchars($device['SERVER_NAME']); ?></span>
+                                                    <?php endif; ?>
+                                                </div>
+                                            <?php else: ?>
+                                                <div style="margin-top: 4px; padding: 3px 8px; background-color: #f8f8f8; border-radius: 3px; font-size: 11px; color: #999;">
+                                                    <span class="glyphicon glyphicon-th-large" aria-hidden="true"></span>
+                                                    <?php echo __('Родительский контроллер не найден'); ?>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                                <?php 
+                                                $access_names = $device['ACCESS_NAMES'];
+                                                $total_access = count($access_names);
+                                                $display_count = 5; // Показываем первые 5 категорий
+                                                
+                                                foreach (array_slice($access_names, 0, $display_count) as $access_name): 
+                                                ?>
+                                                    <span class="label label-info" style="font-size: 11px; padding: 3px 8px;">
+                                                        <span class="glyphicon glyphicon-tag" aria-hidden="true" style="font-size: 9px;"></span>
+                                                        <?php echo htmlspecialchars($access_name); ?>
+                                                    </span>
+                                                <?php endforeach; ?>
+                                                
+                                                <?php if ($total_access > $display_count): ?>
+                                                    <span class="label label-default" style="font-size: 11px; padding: 3px 8px; background-color: #777;">
+                                                        +<?php echo ($total_access - $display_count); ?> 
+                                                        <?php echo __('еще'); ?>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </div>
+                                            <div style="margin-top: 4px; font-size: 10px; color: #999;">
+                                                <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                                                <?php echo __('Всего категорий') . ': ' . $total_access; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                            <tfoot>
+                                <tr class="info">
+                                    <td colspan="3">
+                                        <small class="text-muted">
+                                            <span class="glyphicon glyphicon-stats" aria-hidden="true"></span>
+                                            <?php echo __('Всего точек прохода') . ': ' . count($access_devices); ?>
+                                        </small>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                <?php else: ?>
+                    <div class="alert alert-info" style="margin: 0;">
+                        <span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
+                        <?php echo __('У сотрудника нет точек прохода'); ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
+	
 
 <?php // таблица последний событий жильца?>
 	<div class="panel panel-primary">
@@ -321,5 +489,70 @@ $(document).ready(function() {
         $('#iconExpand').show();
         $('#accessToggle').attr('aria-expanded', 'false');
     }
+});
+</script>
+
+// people/views/People/view.php
+// Добавляем в существующий скрипт
+
+<script type="text/javascript">
+$(document).ready(function() {
+    // ===== Управление иконкой для категорий доступа =====
+    $('#accessCollapse').on('shown.bs.collapse', function() {
+        $('#iconCollapse').show();
+        $('#iconExpand').hide();
+        $('#accessToggle').attr('aria-expanded', 'true');
+    });
+    
+    $('#accessCollapse').on('hidden.bs.collapse', function() {
+        $('#iconCollapse').hide();
+        $('#iconExpand').show();
+        $('#accessToggle').attr('aria-expanded', 'false');
+    });
+    
+    // Инициализация для категорий доступа
+    if ($('#accessCollapse').hasClass('in')) {
+        $('#iconCollapse').show();
+        $('#iconExpand').hide();
+        $('#accessToggle').attr('aria-expanded', 'true');
+    } else {
+        $('#iconCollapse').hide();
+        $('#iconExpand').show();
+        $('#accessToggle').attr('aria-expanded', 'false');
+    }
+    
+    // ===== Управление иконкой для точек прохода =====
+    $('#devicesCollapse').on('shown.bs.collapse', function() {
+        $('#devicesIconCollapse').show();
+        $('#devicesIconExpand').hide();
+        $('#devicesToggle').attr('aria-expanded', 'true');
+    });
+    
+    $('#devicesCollapse').on('hidden.bs.collapse', function() {
+        $('#devicesIconCollapse').hide();
+        $('#devicesIconExpand').show();
+        $('#devicesToggle').attr('aria-expanded', 'false');
+    });
+    
+    // Инициализация для точек прохода
+    if ($('#devicesCollapse').hasClass('in')) {
+        $('#devicesIconCollapse').show();
+        $('#devicesIconExpand').hide();
+        $('#devicesToggle').attr('aria-expanded', 'true');
+    } else {
+        $('#devicesIconCollapse').hide();
+        $('#devicesIconExpand').show();
+        $('#devicesToggle').attr('aria-expanded', 'false');
+    }
+    
+    // ===== Подсветка строк таблицы при наведении =====
+    $('#devicesCollapse .table tbody tr').hover(
+        function() {
+            $(this).css('background-color', '#f0f8ff');
+        },
+        function() {
+            $(this).css('background-color', '');
+        }
+    );
 });
 </script>

@@ -792,6 +792,91 @@ public function getPeopleAccessCategories($id_pep)
     return $result;
 }
 
+// people/classes/Model/People.php
+// Обновляем метод getPeopleAccessDevices()
+
+/**
+ * Получить список точек прохода с группировкой по устройствам
+ * @param int $id_pep ID сотрудника
+ * @return array Список точек прохода с объединенными категориями
+ */
+public function getPeopleAccessDevices($id_pep)
+{
+    if (empty($id_pep)) {
+        return array();
+    }
+    
+    $id_pep = (int) $id_pep;
+    
+    $sql = 'SELECT 
+                sau.ID_ACCESSUSER,
+                sau.ID_ACCESSNAME,
+                an.NAME AS ACCESS_NAME,
+                a.ID_DEV,
+                d.NAME AS DEVICE_NAME,
+                d.ID_READER,
+                d.NETADDR,
+                d."ACTIVE" AS DEVICE_ACTIVE,
+                d.ID_CTRL,
+                dt.NAME AS DEVTYPE_NAME,
+                s.NAME AS SERVER_NAME,
+                d2.NAME AS CONTROLLER_NAME,
+                d2.ID_DEV AS CONTROLLER_ID,
+                d2."ACTIVE" AS CONTROLLER_ACTIVE,
+                d2.NETADDR AS CONTROLLER_IP
+            FROM SS_ACCESSUSER sau
+            JOIN ACCESSNAME an ON an.ID_ACCESSNAME = sau.ID_ACCESSNAME
+            JOIN ACCESS a ON a.ID_ACCESSNAME = sau.ID_ACCESSNAME
+            JOIN DEVICE d ON d.ID_DEV = a.ID_DEV
+            LEFT JOIN DEVTYPE dt ON dt.ID_DEVTYPE = d.ID_DEVTYPE
+            LEFT JOIN DEVICE d2 ON d2.ID_CTRL = d.ID_CTRL AND d2.ID_READER IS NULL
+            LEFT JOIN SERVER s ON s.ID_SERVER = d.ID_SERVER
+            WHERE sau.ID_PEP = ' . $id_pep . '
+            ORDER BY d.NAME, an.NAME';
+
+    $query = DB::query(Database::SELECT, $sql)
+        ->execute(Database::instance('fb'))
+        ->as_array();
+    
+    // Группируем по ID_DEV
+    $grouped = array();
+    foreach ($query as $row) {
+        $dev_id = $row['ID_DEV'];
+        
+        if (!isset($grouped[$dev_id])) {
+            $grouped[$dev_id] = array(
+                'ID_DEV' => $row['ID_DEV'],
+                'DEVICE_NAME' => iconv('windows-1251', 'UTF-8', $row['DEVICE_NAME']),
+                'ID_READER' => $row['ID_READER'],
+                'NETADDR' => $row['NETADDR'],
+                'DEVICE_ACTIVE' => $row['DEVICE_ACTIVE'],
+                'ID_CTRL' => $row['ID_CTRL'],
+                'DEVTYPE_NAME' => isset($row['DEVTYPE_NAME']) ? iconv('windows-1251', 'UTF-8', $row['DEVTYPE_NAME']) : '—',
+                'SERVER_NAME' => isset($row['SERVER_NAME']) ? iconv('windows-1251', 'UTF-8', $row['SERVER_NAME']) : '—',
+                'CONTROLLER_NAME' => isset($row['CONTROLLER_NAME']) ? iconv('windows-1251', 'UTF-8', $row['CONTROLLER_NAME']) : '—',
+                'CONTROLLER_ID' => $row['CONTROLLER_ID'],
+                'CONTROLLER_ACTIVE' => $row['CONTROLLER_ACTIVE'],
+                'CONTROLLER_IP' => $row['CONTROLLER_IP'],
+                'ACCESS_NAMES' => array()
+            );
+        }
+        
+        // Добавляем категорию доступа
+        $access_name = iconv('windows-1251', 'UTF-8', $row['ACCESS_NAME']);
+        if (!in_array($access_name, $grouped[$dev_id]['ACCESS_NAMES'])) {
+            $grouped[$dev_id]['ACCESS_NAMES'][] = $access_name;
+        }
+    }
+    
+    // Преобразуем в обычный массив и сортируем по имени устройства
+    $result = array_values($grouped);
+    usort($result, function($a, $b) {
+        return strcmp($a['DEVICE_NAME'], $b['DEVICE_NAME']);
+    });
+    
+    return $result;
+}
+
 	
 }
 

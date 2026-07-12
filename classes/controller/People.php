@@ -308,7 +308,11 @@ class Controller_People extends Controller_Template {
 			
 			)); */
 			
-			$people_access_categories = Model::Factory('People')->getPeopleAccessCategories($id_pep);
+			    // Получаем категории доступа
+    $people_access_categories = Model::Factory('People')->getPeopleAccessCategories($id_pep);
+    
+    // НОВЫЙ КОД: Получаем точки прохода
+    $people_access_devices = Model::Factory('People')->getPeopleAccessDevices($id_pep);
     
     $content = View::Factory('people/view', array(
         'contact' => $people_data,
@@ -316,7 +320,8 @@ class Controller_People extends Controller_Template {
         'events' => $people_event,
         'parking' => $people_parking,
         'people_parking_errors' => $people_parking_errors,
-        'access_categories' => $people_access_categories, // НОВАЯ ПЕРЕМЕННАЯ
+        'access_categories' => $people_access_categories,
+        'access_devices' => $people_access_devices, // НОВАЯ ПЕРЕМЕННАЯ
     ));
 			
 		$this->template->content = $content;
