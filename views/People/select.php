@@ -1,5 +1,5 @@
 <?php 
-// echo Debug::vars('11', $list);
+//echo Debug::vars('11', $list);
 ?>
 
 <div class="panel panel-primary">
@@ -91,7 +91,7 @@
                 
                 <td>
                   <?php 
-                    $last_event = Arr::get($contact, 'MAX');
+                    $last_event = Arr::get($contact, 'LAST_EVENT');
                     if (!empty($last_event)) {
                       echo date("d.m.Y H:i", strtotime($last_event));
                     } else {

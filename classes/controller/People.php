@@ -245,7 +245,7 @@ public function action_find()
     }
     
     $result = Model::Factory('People')->findIdPep($search);
-    
+  //echo Debug::vars('248', $result);exit;  
     if (count($result) > 0) {
         $content = View::Factory('people/select', array(
             'list' => $result,

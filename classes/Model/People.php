@@ -246,13 +246,12 @@ class Model_People extends Model
 	$query = DB::query(Database::SELECT, iconv('UTF-8','windows-1251',$sql))
 			->execute(Database::instance('fb'))
 			->as_array();
-	//echo Debug::vars('28', $sql, $query);exit;
+	
 	$res=array();
 	
-		foreach ($query as $key=>$value)
-		{
-				$res[]=Arr::get($value, 'ID_PEP');
-		}
+		$res = array_values(array_column($query, 'ID_PEP'));
+		
+	
 	return $temp=$this->findIdPepInfo($res);;
 	
 	}
@@ -326,7 +325,7 @@ public function findIdPepInfo($id_pep)
                     C.ID_CARDTYPE, 
                     ct.name, 
                     p.authmode';
-        
+  //echo print_r($sql);exit;      
         $query = DB::query(Database::SELECT, iconv('UTF-8','windows-1251',$sql))
                 ->execute(Database::instance('fb'))
                 ->as_array();
