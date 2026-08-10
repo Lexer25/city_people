@@ -320,6 +320,7 @@
                                                 </div>
                                                 
                                                 <!-- Время загрузки -->
+
                                                 <?php if ($load_status == 'loaded' || $load_status == 'queue'): ?>
                                                     <div style="font-size: 10px; color: #666;">
                                                         <?php if ($load_status == 'queue'): ?>
@@ -329,7 +330,13 @@
                                                                 <br>
                                                                 <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span>
                                                                 <?php echo __('Попыток') . ': ' . $device['ATTEMPTS']; ?>
+                                                               
                                                             <?php endif; ?>
+															 <?php 
+																echo '<br>';
+																echo __('Время последней операции') . ': ' . $device['LOAD_TIME']; 
+                                                                echo '<br>';
+																echo __('Результат') . ': ' . $device['LOAD_RESULT']; ?>
                                                         <?php else: ?>
                                                             <span class="glyphicon glyphicon-calendar" aria-hidden="true"></span>
                                                             <?php echo __('Загружена') . ': ' . $load_time_formatted; ?>
