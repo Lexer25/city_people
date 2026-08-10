@@ -1,6 +1,7 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 class Controller_People extends Controller_Template { 
 
+	private $maxLenghtForFind=3;
 	public function before()
 	{
 			
@@ -57,175 +58,6 @@ class Controller_People extends Controller_Template {
 	 }
 	
 	 
-/* 	 public function action_find()
-	 {
-	 	//echo Debug::vars('61', $_GET); exit;
-		$search=Arr::get($_GET, 'peopleInfo');
-	 	$_SESSION['peopleEventsTimeFrom']=Arr::get($_GET, 'timeFrom', Date::formatted_time('-2 days', "d.m.Y H:i:s"));
-	 	$_SESSION['peopleEventsTimeTo']=Arr::get($_GET, 'timeTo',Date::formatted_time('now', "d.m.Y H:i:s"));
-		$result=Model::Factory('People')->findIdPep($search);// поиск жильцов, совпадающих с введенным именем
-		if(count($result)>0)
-		 {
-			$content=View::Factory('people/select', array(
-			'list' => $result,
-			));
-		 $this->template->content = $content;
-		 
-		 } else {
-		 $content=View::Factory('people/search');
-		 $this->template->content = $content;
-		 }
-	 }
-	 
-	 
-	 public function action_findID()//13.02.2022 поиск пользователя по ID_PEP
-	 {
-	 	
-		$post=Validation::factory($this->request->post());
-				//echo Debug::vars('82', $_POST, $post); exit;
-		$post->rule('idPepInfo', 'not_empty')
-						->rule('idPepInfo', 'digit')
-						;
-		if($post->check())
-		{
-			//echo Debug::vars('95');exit;
-			$id_pep=Arr::get($post, 'idPepInfo');
-			$_SESSION['peopleEventsTimeFrom']=Arr::get($_GET, 'timeFrom', Date::formatted_time('-2 days', "d.m.Y H:i:s"));
-			$_SESSION['peopleEventsTimeTo']=Arr::get($_GET, 'timeTo',Date::formatted_time('now', "d.m.Y H:i:s"));
-			$result=Model::Factory('People')->findIdPepInfo(array($id_pep));// поиск ID жильцов по указанном ID_PEP
-		
-			if(count($result)>0)
-			 {
-				$content=View::Factory('people/select', array(
-				'list' => $result,
-				));
-			 $this->template->content = $content;
-			 
-			 } else {
-			 $content=View::Factory('people/search');
-			 $this->template->content = $content;
-			 }
-		 } else {
-			 //echo Debug::vars('108', $param->errors());exit;
-		 }
-	 }
-	 
-	 
-	public function action_findAnyCard()//13.02.2022 поиск пользователя по номеру карты
-	 {
-	 	//echo Debug::vars('115', $this->request->post()); //exit;
-		//echo Debug::vars('116',$_POST);exit;
-		//echo Debug::vars('139 baseFormatRfid ', Kohana::$config->load('artonitcity_config')->baseFormatRfid);//exit;
-		
-		$key='';
-		$post=Validation::factory($this->request->post());
-		//echo Debug::vars('121',$post,Arr::get($post, 'keyFormat'),Arr::get($post, 'getCardInfo'));exit;
-		
-		switch(Arr::get($post, 'keyFormat')){
-			case 'dec': // номер для поиска - десятичное число. Валидирую и преобразую к формату хранения в бд.
-				$post->rule('getCardInfo', 'not_empty')
-								->rule('getCardInfo', 'digit')
-								;
-				if($post->check()){// номер передан в формате целого десятичного числа
-				
-					//echo Debug::vars('126 число десятичное!');
-					//преобразую целое длинное число к формат 001А
-					switch(Kohana::$config->load('artonitcity_config')->baseFormatRfid){
-						case 0: //baseFormatRfid hex8
-						//преобразование длинного десятичного числа к HEX
-							//$key=Model::Factory('Stat')->decDigitTo001A(Arr::get($post, 'getCardInfo'));
-							$key= STR_PAD(strtoupper(dechex(Arr::get($post, 'getCardInfo'))), 8, '0', STR_PAD_LEFT);
-						break;
-						
-						case 1:// baseFormatRfid 001A
-						//преобразование длинного десятичного числа к 001A
-							$key=Model::Factory('Stat')->decDigitTo001A(Arr::get($post, 'getCardInfo'));
-						break;
-					
-					}
-				}
-				
-			break;
-			case 'hex':	// номер для поиска передан в формате hex		
-				
-					 //echo Debug::vars('144 число HEX');
-						//Номер передан в формате HEX	
-							 $post=Validation::factory($this->request->post());
-							 $post->rule('getCardInfo', 'not_empty')
-									->rule('getCardInfo', 'regex', array(':value', '/^[a-fA-F0-9]+$/'));
-											;
-							if($post->check())// номер передан в формате hex
-							{
-								//echo Debug::vars('147 001A');exit;
-								$key=Arr::get($post, 'getCardInfo');
-								switch(Kohana::$config->load('artonitcity_config')->baseFormatRfid){
-									case 0: //baseFormatRfid hex8
-									//преобразование HEX к HEX. Добавляю слева нули, чтобы длина была 8 символов.
-										
-										$key = STR_PAD(Arr::get($post, 'getCardInfo'), 8, '0', STR_PAD_LEFT);
-									break;
-									
-									case 1:// baseFormatRfid 001A
-									//преобразование HEX к 001A
-										$key=Model::Factory('Stat')->decDigitTo001A(hexdec(Arr::get($post, 'getCardInfo')));// пребразую HEX в DEC, а затем использую готовую функцию.
-									break;
-								}
-							
-							}
-
-			break;
-			case 'none':
-				$key=Arr::get($post, 'getCardInfo');
-			
-			break;
-			default:
-				$this->redirect('people/find');
-			break;
-						
-		}		
-		//echo Debug::vars('160 STOP', $key);exit;
-		
-		if($key!='')
-		{
-			//Получаю ID_PEP по номеру карты
-			$id_pep_array=Model::factory('People')->getIdPepFromCard($key);
-			//echo Debug::vars('171', $id_pep, $key);exit;
-			
-			$_SESSION['peopleEventsTimeFrom']=Arr::get($_GET, 'timeFrom', Date::formatted_time('-2 days', "d.m.Y H:i:s"));
-			$_SESSION['peopleEventsTimeTo']=Arr::get($_GET, 'timeTo',Date::formatted_time('now', "d.m.Y H:i:s"));
-			$id_pep=null;
-			if(is_array($id_pep_array))
-			{
-				foreach($id_pep_array as $key=>$value)
-				{
-					$id_pep[Arr::get($value, 'ID_PEP')]=Arr::get($value, 'ID_PEP');
-				}
-		
-			}
-			//echo Debug::vars('200', $result);exit;
-			$result=Model::Factory('People')->findIdPepInfo($id_pep);// поиск ID жильцов по указанном ID_PEP
-			if(count($result)>0)
-			 {
-				$content=View::Factory('people/select', array(
-				'list' => $result,
-				));
-			 $this->template->content = $content;
-			 
-			 } else {
-			 $content=View::Factory('people/search');
-			 $this->template->content = $content;
-			 }
-		 } else {
-			 //echo Debug::vars('108', $param->errors());exit;
-			  $content=View::Factory('people/search');
-			 $this->template->content = $content;
-		 }
-			
-	}
-		
-	 
-	  */
-	
 	// people/classes/controller/People.php
 // Обновляем методы поиска с добавлением сообщения об отсутствии результатов
 
@@ -236,7 +68,7 @@ public function action_find()
     $_SESSION['peopleEventsTimeTo'] = Arr::get($_GET, 'timeTo', Date::formatted_time('now', "d.m.Y H:i:s"));
     
     // Проверяем, что поисковый запрос не пустой
-    if (empty($search) || strlen($search) < 4) {
+    if (empty($search) || strlen($search) < $this->maxLenghtForFind) {
         $content = View::Factory('people/search', array(
             'error_message' => __('Для поиска необходимо ввести не менее 3-х букв')
         ));
@@ -458,17 +290,10 @@ public function action_findAnyCard()
 			if ($id_pep == NULL) $this->redirect('people/find');
 			$people_data=Model::Factory('People')->getPeople($id_pep, $id_card);//персональные данные
 			$people_event=Model::Factory('Event') -> event_people($id_pep, $id_card);//события по пользователю за последние 24 часа.
-			$people_parking=Model::Factory('Parking') -> event_people($id_pep);//Информация о нахождении на парковке
-			$people_parking_errors=Model::Factory('Parking') -> parking_error($id_pep);//Информация о нарушениях парковки
+			//$people_parking=Model::Factory('Parking') -> event_people($id_pep);//Информация о нахождении на парковке
+			//$people_parking_errors=Model::Factory('Parking') -> parking_error($id_pep);//Информация о нарушениях парковки
 			//echo Debug::vars('125', $people_data, $id_pep); exit;
-		/* $content=View::Factory('people/view', array(
-			'contact'	=> $people_data,
-			'doors'	=> $people_door,
-			'events'	=> $people_event,
-			'parking'	=> $people_parking,
-			'people_parking_errors'	=> $people_parking_errors,
-			
-			)); */
+		
 			
 			    // Получаем категории доступа
     $people_access_categories = Model::Factory('People')->getPeopleAccessCategories($id_pep);
@@ -479,8 +304,8 @@ public function action_findAnyCard()
     $content = View::Factory('people/view', array(
         'contact' => $people_data,
         'events' => $people_event,
-        'parking' => $people_parking,
-        'people_parking_errors' => $people_parking_errors,
+        //'parking' => $people_parking,
+        //'people_parking_errors' => $people_parking_errors,
         'access_categories' => $people_access_categories,
         'access_devices' => $people_access_devices, // НОВАЯ ПЕРЕМЕННАЯ
     ));

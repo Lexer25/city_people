@@ -235,7 +235,7 @@ class Model_People extends Model
 	{
 
 	if ($search == NULL) return NULL;
-	if(strlen($search)<4) return NULL;// т.к. кодировка UTF, о на каждую букву отводится 2 байта. 3 буквы - это 6 байт.
+//	if(strlen($search)<4) return NULL;// т.к. кодировка UTF, о на каждую букву отводится 2 байта. 3 буквы - это 6 байт.
 
 	$sql='select distinct p.id_pep from people p
 			join card c on c.id_pep=p.id_pep

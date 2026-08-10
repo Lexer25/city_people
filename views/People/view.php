@@ -233,7 +233,7 @@
                                     } elseif (!empty($device['LOAD_TIME'])) {
                                         // Карта загружена
                                         $load_status = 'loaded';
-                                        if ($device['LOAD_RESULT'] == 0) {
+                                       if (strpos($device['LOAD_RESULT'], 'OK') !== false) {
                                             $load_status_color = 'success';
                                             $load_status_text = __('Загружена');
                                         } else {
