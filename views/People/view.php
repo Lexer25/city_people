@@ -210,6 +210,7 @@
                                 <?php 
                                 $row_num = 1;
                                 foreach ($access_devices as $device): 
+								//echo Debug::vars('213', $device, $device['STANDALONE']==0);exit;
                                     $status_color = ($device['DEVICE_ACTIVE'] == 1) ? 'success' : 'danger';
                                     $status_text = ($device['DEVICE_ACTIVE'] == 1) ? __('Активно') : __('Неактивно');
                                     
@@ -221,26 +222,41 @@
                                     }
                                     
                                     // Определяем статус загрузки карты
-                                    $load_status = '';
-                                    $load_status_color = 'default';
-                                    $load_status_text = __('Не загружена');
+                                    $load_status = 'loadError';
+                                    //$load_status_color = 'default';
+                                    $load_status_color = 'danger';
+                                    $load_status_text = __('Ошибка загрузки');
                                     
-                                    if ($device['OPERATION'] == 1) {
-                                        // Карта в очереди на загрузку
-                                        $load_status = 'queue';
-                                        $load_status_color = 'warning';
-                                        $load_status_text = __('В очереди');
-                                    } elseif (!empty($device['LOAD_TIME'])) {
-                                        // Карта загружена
-                                        $load_status = 'loaded';
-                                       if (strpos($device['LOAD_RESULT'], 'OK') !== false) {
+                                    //формирую данные для вывода статуса. варианты:
+									//
+									//загрузка в устройство не требуется либо решается другими способами
+									//standalone=0 - НЕ автономное, загрузка идентификаторов не требуется
+									//standalone=1 - автономное, но требует загрузки идентификаторов
+									
+									if($device['STANDALONE']==0){
+										$load_status='ok';
+										$load_status_color = 'success';
+                                        $load_status_text = __('Не требуется');
+										$load_status_mess=__('<br>загрузка не требуется');
+										
+									} else { 
+										if (strpos($device['LOAD_RESULT'], 'OK') !== false) {//если загрузка успешна
                                             $load_status_color = 'success';
                                             $load_status_text = __('Загружена');
-                                        } else {
+                                       /*  } else {
                                             $load_status_color = 'danger';
                                             $load_status_text = __('Ошибка загрузки');
-                                        }
-                                    }
+                                        } 
+										
+										(!empty($device['LOAD_TIME'])) {
+                                        // Карта загружена
+                                        $load_status = 'loaded';
+                                       */
+										} elseif ($device['OPERATION'] == 1) {// Карта в очереди на загрузку
+											$load_status = 'queue';
+											$load_status_color = 'warning';
+											$load_status_text = __('В очереди');
+										}
                                     
                                     // Форматируем время загрузки
                                     $load_time_formatted = '—';
@@ -253,6 +269,10 @@
                                     if (!empty($device['QUEUE_TIME'])) {
                                         $queue_time_formatted = date("d.m.Y H:i:s", strtotime($device['QUEUE_TIME']));
                                     }
+									
+									$load_status_mess=__('<br>:time<br>:result', array(':time'=>$load_time_formatted, ':result'=>$device['LOAD_RESULT']));
+									}
+									
                                 ?>
                                     <tr>
                                         <td class="text-center"><?php echo $row_num++; ?></td>
@@ -314,9 +334,12 @@
                                                 <!-- Статус загрузки -->
                                                 <div>
                                                     <span class="label label-<?php echo $load_status_color; ?>" style="font-size: 11px; padding: 4px 8px;">
-                                                        <span class="glyphicon glyphicon-<?php echo ($load_status == 'queue') ? 'time' : (($load_status == 'loaded') ? 'ok' : 'remove'); ?>" aria-hidden="true" style="font-size: 10px;"></span>
+                                                        
                                                         <?php echo $load_status_text; ?>
                                                     </span>
+													<span style="color: #555; font-size: 11px; padding: 1px 6px;"><?php echo $load_status_mess ?></span>
+													
+													
                                                 </div>
                                                 
                                                 <!-- Время загрузки -->

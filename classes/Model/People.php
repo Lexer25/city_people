@@ -863,6 +863,7 @@ public function getPeopleAccessDevices($id_pep, $id_card = null)
                 d."ACTIVE" AS DEVICE_ACTIVE,
                 d.ID_CTRL,
                 dt.NAME AS DEVTYPE_NAME,
+				dt.STANDALONE,
                 s.NAME AS SERVER_NAME,
                 d2.NAME AS CONTROLLER_NAME,
                 d2.ID_DEV AS CONTROLLER_ID,
@@ -878,8 +879,9 @@ public function getPeopleAccessDevices($id_pep, $id_card = null)
             JOIN ACCESSNAME an ON an.ID_ACCESSNAME = sau.ID_ACCESSNAME
             JOIN ACCESS a ON a.ID_ACCESSNAME = sau.ID_ACCESSNAME
             JOIN DEVICE d ON d.ID_DEV = a.ID_DEV
-            LEFT JOIN DEVTYPE dt ON dt.ID_DEVTYPE = d.ID_DEVTYPE
+           
             LEFT JOIN DEVICE d2 ON d2.ID_CTRL = d.ID_CTRL AND d2.ID_READER IS NULL
+			 LEFT JOIN DEVTYPE dt ON dt.ID_DEVTYPE = d2.ID_DEVTYPE
             LEFT JOIN SERVER s ON s.ID_SERVER = d.ID_SERVER
             LEFT JOIN card c ON c.ID_PEP = sau.ID_PEP
             LEFT JOIN cardidx cd ON cd.ID_CARD = c.ID_CARD AND cd.ID_DEV = d.ID_DEV
@@ -910,7 +912,8 @@ public function getPeopleAccessDevices($id_pep, $id_card = null)
                 'DEVICE_ACTIVE' => $row['DEVICE_ACTIVE'],
                 'ID_CTRL' => $row['ID_CTRL'],
                 'DEVTYPE_NAME' => isset($row['DEVTYPE_NAME']) ? iconv('windows-1251', 'UTF-8', $row['DEVTYPE_NAME']) : '—',
-                'SERVER_NAME' => isset($row['SERVER_NAME']) ? iconv('windows-1251', 'UTF-8', $row['SERVER_NAME']) : '—',
+                'DEVTYPE_NAME' => isset($row['DEVTYPE_NAME']) ? iconv('windows-1251', 'UTF-8', $row['DEVTYPE_NAME']) : '—',
+                'STANDALONE' => $row['STANDALONE'],
                 'CONTROLLER_NAME' => isset($row['CONTROLLER_NAME']) ? iconv('windows-1251', 'UTF-8', $row['CONTROLLER_NAME']) : '—',
                 'CONTROLLER_ID' => $row['CONTROLLER_ID'],
                 'CONTROLLER_ACTIVE' => $row['CONTROLLER_ACTIVE'],
