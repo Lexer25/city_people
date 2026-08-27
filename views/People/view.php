@@ -477,6 +477,9 @@
                                 <th><?php echo __('event_analit');?></th>
                             </tr>
                         </thead>
+						<?php //echo Debug::vars('482', $events);exit;
+						
+						?>
                         <tbody>
                             <?php foreach ($events as $key=>$value)
                             {
@@ -492,7 +495,7 @@
                                         echo(Arr::get($value, 'EVENT_ANALIT') == 1)? 'Да':'Нет';
                                         echo ' ('.Arr::get($value, 'ANALIT_CODE').' ';
                                         echo __(Arr::get($value, 'ANALIT_CODE').'a').')<br>';
-                                        if(Arr::get($value, 'ANALIT_CODE') == 657) {
+/*                                         if(Arr::get($value, 'ANALIT_CODE') == 657) {
                                             $resultLoad = Arr::get($doors, Arr::get($value, 'ID_DEV'));
                                             echo '<small>';
                                             echo __('load_result').': ';
@@ -522,7 +525,7 @@
                                                 echo date("d.m.Y H:i:s", strtotime(Arr::get($resultLoad, 'LOAD_TIME')));
                                             }
                                             echo '</small>';
-                                        }
+                                        } */
                                     echo '</td>';
                                 echo '</tr>';
                             }
