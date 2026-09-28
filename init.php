@@ -1,6 +1,6 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-defined('PEOPLE_VERSION') OR define('PEOPLE_VERSION', '1.0.5');
+defined('PEOPLE_VERSION') OR define('PEOPLE_VERSION', '1.0.6');
 
 Kohana::$config->load('menu')
     ->set('people', array(
@@ -31,3 +31,10 @@ Kohana::$config->load('menu')
             ),
         )
     ));
+	
+		
+Route::set('peoplesearcch', 'people(/peopleInfo(/<id>)(/<card>))')
+	->defaults(array(
+		'controller' => 'people',
+		'action'     => 'peopleInfo',
+	));
